@@ -13,4 +13,8 @@
       <PackageReference Include="CommunityToolkit.Aspire.Hosting.Minio"/>
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\..\src\FileFlow.Api\FileFlow.Api.csproj" />
+    </ItemGroup>
+
 </Project>
