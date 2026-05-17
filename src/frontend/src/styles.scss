@@ -1,1 +1,140 @@
-/* You can add global styles to this file, and also import other style files */
+@use "@angular/material" as mat;
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+/* Dark Theme - Applied by default */
+:root, :host {
+  @include mat.theme-overrides((
+    primary: #cfbcff,
+    on-primary: #381e72,
+    primary-container: #4f378a,
+    on-primary-container: #e9ddff,
+    inverse-primary: #6750a4,
+    secondary: #ccc2db,
+    on-secondary: #332d40,
+    secondary-container: #4a4458,
+    on-secondary-container: #e8def8,
+    tertiary: #efb8c8,
+    on-tertiary: #4a2532,
+    tertiary-container: #633b48,
+    on-tertiary-container: #ffd9e3,
+    background: #141313,
+    on-background: #e6e1e1,
+    surface: #141313,
+    surface-dim: #141313,
+    surface-bright: #3a3939,
+    surface-container-lowest: #0f0e0e,
+    surface-container-low: #1c1b1c,
+    surface-container: #201f20,
+    surface-container-high: #2b2a2a,
+    surface-container-highest: #363435,
+    on-surface: #e6e1e1,
+    shadow: #000000,
+    scrim: #000000,
+    surface-tint: #cac5ca,
+    inverse-surface: #e6e1e1,
+    inverse-on-surface: #313030,
+    outline: #938f95,
+    outline-variant: #48464b,
+    error: #ffb4ab,
+    error-container: #93000a,
+    on-error: #690005,
+    on-error-container: #ffdad6,
+    surface-variant: #48464b,
+    on-surface-variant: #cac5cb,
+  ));
+
+  --mat-sys-brand-font-family: Roboto;
+  --mat-sys-plain-font-family: Roboto;
+  --mat-sys-bold-font-weight: 700;
+  --mat-sys-medium-font-weight: 500;
+  --mat-sys-regular-font-weight: 400;
+}
+
+html {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100%;
+  font-family: Roboto, system-ui, sans-serif;
+  background: linear-gradient(135deg, #141313 0%, #1c1b1c 50%, #0f0e0e 100%);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button {
+  font: inherit;
+}
+
+/* Layout Standardization */
+.page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.page-section {
+  margin-bottom: 2rem;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: clamp(1.75rem, 2.2vw, 2.5rem);
+  color: #e6e1e1;
+}
+
+.page-header p {
+  margin: 0.5rem 0 0;
+  color: #cac5cb;
+}
+
+/* Material Component Standardization */
+mat-card {
+  background-color: #201f20 !important;
+  border: 1px solid #363435 !important;
+  color: #e6e1e1 !important;
+  border-radius: 1.5rem !important;
+}
+
+mat-card-content {
+  background-color: #201f20 !important;
+  color: #e6e1e1 !important;
+}
+
+mat-table {
+  background-color: #201f20 !important;
+  color: #e6e1e1;
+  border-radius: 1.5rem !important;
+  overflow: hidden;
+}
+
+mat-header-cell {
+  background-color: rgba(207, 188, 255, 0.12) !important;
+  color: #e6e1e1 !important;
+  font-weight: 700 !important;
+  border-radius: 0;
+}
+
+mat-row {
+  border-bottom: 1px solid #363435;
+}
+
+mat-row:nth-child(odd) {
+  background-color: rgba(207, 188, 255, 0.04);
+}
+
+mat-row:hover {
+  background-color: rgba(207, 188, 255, 0.12);
+}

@@ -1,0 +1,23 @@
+.content-card {
+  padding: 1.5rem;
+  border-radius: 1.5rem;
+}
+
+.table-container {
+  overflow: hidden;
+  border-radius: 1.5rem;
+  margin: -1.5rem;
+}
+
+.full-width-table {
+  width: 100%;
+  min-width: 360px;
+  margin: 0;
+  border-radius: 1.5rem;
+  overflow: hidden;
+}
+
+mat-cell {
+  padding: 1rem 1rem;
+  color: #e6e1e1;
+}
