@@ -1,0 +1,16 @@
+<Project Sdk="Aspire.AppHost.Sdk/13.3.3">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <UserSecretsId>ce286c55-1569-426d-ba89-0cf09345616e</UserSecretsId>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Aspire.Hosting.JavaScript" />
+      <PackageReference Include="CommunityToolkit.Aspire.Hosting.Minio"/>
+    </ItemGroup>
+
+</Project>
