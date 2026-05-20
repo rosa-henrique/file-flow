@@ -12,6 +12,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\aspire\FileFlow.ServiceDefaults\FileFlow.ServiceDefaults.csproj" />
+      <ProjectReference Include="..\FileFlow.Data\FileFlow.Data.csproj" />
     </ItemGroup>
 
 </Project>

@@ -16,6 +16,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\src\FileFlow.Api\FileFlow.Api.csproj" />
+      <ProjectReference Include="..\..\src\FileFlow.MigrationService\FileFlow.MigrationService.csproj" />
     </ItemGroup>
 
 </Project>

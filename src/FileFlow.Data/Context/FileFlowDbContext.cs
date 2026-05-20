@@ -1,7 +1,7 @@
 using FileFlow.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace FileFlow.Data.Data;
+namespace FileFlow.Data.Context;
 
 public class FileFlowDbContext : DbContext
 {

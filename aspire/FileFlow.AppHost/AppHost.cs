@@ -6,14 +6,15 @@ var minio = builder.AddMinioContainer("minio")
 var postgres = builder.AddPostgres("postgres")
     .WithLifetime(ContainerLifetime.Persistent);
 var fileFlowDb = postgres.AddDatabase("fileflow", "file_flow");
-var fileFlowLogs = postgres.AddDatabase("fileflowlog", "file_flow_logs");
+
+var migrations = builder.AddProject<Projects.FileFlow_MigrationService>("migrations")
+    .WithReference(fileFlowDb)
+    .WaitFor(fileFlowDb);
 
 var api = builder.AddProject<Projects.FileFlow_Api>("api")
     .WithHttpHealthCheck("/health")
     .WithReference(fileFlowDb)
-    .WithReference(fileFlowLogs)
-    .WaitFor(fileFlowDb)
-    .WaitFor(fileFlowLogs);
+    .WaitForCompletion(migrations);
 
 builder.AddJavaScriptApp("frontend", "../../src/frontend")
     .WithRunScript("start")

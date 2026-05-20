@@ -27,8 +27,6 @@ public class UploadBatch : Entity
     [Column("completed_at")]
     public DateTime? CompletedAt { get; private set; }
 
-    private UploadBatch() { }
-
     public static UploadBatch Create(Guid userId, string name)
     {
         return new UploadBatch
@@ -47,6 +45,8 @@ public class UploadBatch : Entity
         CompletedAt = completedAt;
         Status = status;
     }
+
+    protected UploadBatch() { }
 }
 
 public enum UploadBatchStatus

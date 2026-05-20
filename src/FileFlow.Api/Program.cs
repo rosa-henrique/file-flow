@@ -1,3 +1,5 @@
+using FileFlow.Data;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -5,6 +7,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 
 builder.AddServiceDefaults();
+
+builder.AddDataConfig();
 
 var app = builder.Build();
 

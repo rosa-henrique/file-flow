@@ -73,8 +73,6 @@ public class MediaAsset : Entity
     [Column("metadata", TypeName = "jsonb")]
     public JsonDocument? Metadata { get; private set; }
 
-    private MediaAsset() { }
-
     public static MediaAsset Create(
         Guid uploadBatchId,
         Guid userId,
@@ -128,6 +126,8 @@ public class MediaAsset : Entity
         Status = MediaAssetStatus.MIGRATED;
         CompletedAt = DateTime.UtcNow;
     }
+
+    protected MediaAsset() { }
 }
 
 public enum MediaAssetStatus
