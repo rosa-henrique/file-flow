@@ -1,4 +1,3 @@
-using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -26,6 +25,9 @@ public class UploadBatch : Entity
 
     [Column("completed_at")]
     public DateTime? CompletedAt { get; private set; }
+
+    [InverseProperty(nameof(MediaAsset.UploadBatch))]
+    public List<MediaAsset> MediaAssets { get; private set; } = [];
 
     public static UploadBatch Create(Guid userId, string name)
     {

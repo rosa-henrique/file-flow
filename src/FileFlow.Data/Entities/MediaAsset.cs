@@ -1,4 +1,3 @@
-using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
@@ -37,14 +36,9 @@ public class MediaAsset : Entity
     [Required]
     public long Size { get; private set; }
 
-    [Column("temp_minio_path")]
-    [Required]
+    [Column("final_path")]
     [MaxLength(500)]
-    public string TempMinIOPath { get; private set; } = null!;
-
-    [Column("final_minio_path")]
-    [MaxLength(500)]
-    public string? FinalMinIOPath { get; private set; }
+    public string? FinalPath { get; private set; }
 
     [Column("status", TypeName = "varchar(50)")]
     [Required]
@@ -68,10 +62,13 @@ public class MediaAsset : Entity
     public string? ErrorMessage { get; private set; }
 
     [Column("tags", TypeName = "jsonb")]
-    public JsonDocument? Tags { get; private set; }
+    public List<string>? Tags { get; private set; } = [];
 
     [Column("metadata", TypeName = "jsonb")]
     public JsonDocument? Metadata { get; private set; }
+
+    [InverseProperty(nameof(MediaAssetLog.MediaAsset))]
+    public List<MediaAssetLog> Logs { get; private set; } = [];
 
     public static MediaAsset Create(
         Guid uploadBatchId,
@@ -82,7 +79,7 @@ public class MediaAsset : Entity
         string tempMinIOPath,
         string? title = null,
         MediaAssetStatus status = MediaAssetStatus.PENDING,
-        JsonDocument? tags = null,
+        List<string>? tags = null,
         JsonDocument? metadata = null)
     {
         return new MediaAsset
@@ -94,8 +91,7 @@ public class MediaAsset : Entity
             Title = title,
             MimeType = mimeType,
             Size = size,
-            TempMinIOPath = tempMinIOPath,
-            FinalMinIOPath = null,
+            FinalPath = null,
             Status = status,
             RetryCount = 0,
             CreatedAt = DateTime.UtcNow,
@@ -120,9 +116,9 @@ public class MediaAsset : Entity
         CompletedAt = DateTime.UtcNow;
     }
 
-    public void MarkMigrated(string finalMinioPath)
+    public void MarkMigrated(string finalPath)
     {
-        FinalMinIOPath = finalMinioPath;
+        FinalPath = finalPath;
         Status = MediaAssetStatus.MIGRATED;
         CompletedAt = DateTime.UtcNow;
     }
