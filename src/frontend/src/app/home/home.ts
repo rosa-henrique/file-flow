@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
+import { UploadBatchService } from '../upload-batch';
 
 interface FileItem {
   name: string;
@@ -27,4 +28,12 @@ const ELEMENT_DATA: FileItem[] = [
 export class Home {
   protected readonly displayedColumns = ['name', 'type', 'size'];
   protected readonly dataSource = ELEMENT_DATA;
+
+  constructor(private uploadBatchService: UploadBatchService) {}
+
+  ngOnInit(): void {
+    this.uploadBatchService.getAll().subscribe((batches) => {
+      console.log('Upload batches:', batches);
+    });
+  }
 }
