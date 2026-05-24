@@ -1,27 +1,24 @@
+using System.Text.Json.Serialization;
+
 using FileFlow.Api;
 using FileFlow.Application;
+using FileFlow.Application.Commands.CreateUploadBatch;
 using FileFlow.Application.Queries.GetUploadBatches;
 using FileFlow.Data;
 
 using MediatR;
 
-var myAllowSpecificOrigins = "_myAllowSpecificOrigins";
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy(name: myAllowSpecificOrigins,
-        policy =>
-        {
-            policy.WithOrigins("http://example.com",
-                "http://www.contoso.com");
-        });
-});
-
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi()
+    .ConfigureHttpJsonOptions(options =>
+    {
+        options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 
 builder.AddServiceDefaults();
 
@@ -42,12 +39,17 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseCors(myAllowSpecificOrigins);
-
 app.MapGet("upload-batches", (IMediator mediator) =>
 {
     var request = new GetUploadBatchesQuery();
     return mediator.Send(request);
+});
+
+app.MapPost("upload-batches", async ([FromBody] CreateUploadBatchRequest CreateUploadBatchRequest, IMediator mediator) =>
+{
+    var uploadBatchId = await mediator.Send(CreateUploadBatchRequest);
+
+    return Results.Created($"/upload-batches/{uploadBatchId}", uploadBatchId);
 });
 
 app.Run();

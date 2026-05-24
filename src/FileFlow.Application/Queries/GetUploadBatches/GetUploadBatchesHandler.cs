@@ -11,6 +11,7 @@ public class GetUploadBatchesHandler(FileFlowDbContext dbContext) : IRequestHand
     public async Task<IEnumerable<GetUploadBatchesResponse>> Handle(GetUploadBatchesQuery request, CancellationToken cancellationToken)
     {
         return await dbContext.UploadBatches
+            .OrderBy(u => u.CreatedAt)
             .Select(u => new GetUploadBatchesResponse(
                 u.Id,
                 u.Name,

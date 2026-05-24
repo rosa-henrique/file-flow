@@ -13,7 +13,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FileFlow.MigrationService.Migrations
 {
     [DbContext(typeof(FileFlowDbContext))]
-    [Migration("20260524033606_InitialMigration")]
+    [Migration("20260524055308_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />
@@ -184,10 +184,6 @@ namespace FileFlow.MigrationService.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)")
                         .HasColumnName("status");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("user_id");
 
                     b.HasKey("Id");
 

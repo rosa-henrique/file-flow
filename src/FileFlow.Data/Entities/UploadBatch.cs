@@ -6,10 +6,6 @@ namespace FileFlow.Data.Entities;
 [Table("upload_batches")]
 public class UploadBatch : Entity
 {
-    [Column("user_id")]
-    [Required]
-    public Guid UserId { get; private set; }
-
     [Column("name")]
     [Required]
     [MaxLength(255)]
@@ -29,12 +25,11 @@ public class UploadBatch : Entity
     [InverseProperty(nameof(MediaAsset.UploadBatch))]
     public List<MediaAsset> MediaAssets { get; private set; } = [];
 
-    public static UploadBatch Create(Guid userId, string name)
+    public static UploadBatch Create(string name)
     {
         return new UploadBatch
         {
             Id = Guid.NewGuid(),
-            UserId = userId,
             Name = name,
             Status = UploadBatchStatus.PENDING,
             CreatedAt = DateTime.UtcNow,

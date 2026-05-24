@@ -1,0 +1,84 @@
+<div class="create-upload-batch-container">
+  <h1>Criar Novo Lote de Upload</h1>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="upload-form">
+    <!-- Campo Nome -->
+    <div class="form-group">
+      <label for="name" class="form-label">
+        Nome do Lote <span class="required">*</span>
+      </label>
+      <input
+        id="name"
+        type="text"
+        formControlName="name"
+        class="form-input"
+        placeholder="Ex: Documentos de Fevereiro"
+        [class.is-invalid]="
+          form.get('name')?.invalid && form.get('name')?.touched
+        "
+      />
+      @if (form.get('name')?.invalid && form.get('name')?.touched) {
+        <div class="error-message">
+          @if (form.get('name')?.hasError('required')) {
+            <p>O nome do lote é obrigatório</p>
+          }
+          @if (form.get('name')?.hasError('minlength')) {
+            <p>O nome deve ter no mínimo 3 caracteres</p>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Seção de Upload de Arquivos -->
+    <div class="form-group">
+      <label for="files" class="form-label"> Arquivos para Upload </label>
+      <input
+        id="files"
+        type="file"
+        multiple
+        (change)="onFilesSelected($event)"
+        class="form-input"
+        accept="*"
+      />
+      <p class="file-hint">Você pode selecionar múltiplos arquivos</p>
+
+      @if (selectedFiles.length > 0) {
+        <div class="selected-files">
+          <h3>Arquivos Selecionados ({{ selectedFiles.length }})</h3>
+          <ul>
+            @for (file of selectedFiles; track file.name) {
+              <li>
+                {{ file.name }} ({{ formatFileSize(file.size) }})
+              </li>
+            }
+          </ul>
+          <button
+            type="button"
+            class="btn-clear"
+            (click)="clearFiles()"
+          >
+            Limpar Seleção
+          </button>
+        </div>
+      }
+    </div>
+
+    <!-- Botões de Ação -->
+    <div class="form-actions">
+      <button
+        type="submit"
+        class="btn btn-primary"
+        [disabled]="form.invalid || isSubmitting"
+      >
+        @if (isSubmitting) {
+          <span>Enviando...</span>
+        } @else {
+          <span>Criar Lote</span>
+        }
+      </button>
+      <button type="reset" class="btn btn-secondary">
+        Limpar Formulário
+      </button>
+    </div>
+  </form>
+</div>
