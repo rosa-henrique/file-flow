@@ -14,10 +14,6 @@ public class MediaAsset : Entity
     [ForeignKey(nameof(UploadBatchId))]
     public UploadBatch? UploadBatch { get; private set; }
 
-    [Column("user_id")]
-    [Required]
-    public Guid UserId { get; private set; }
-
     [Column("original_file_name")]
     [Required]
     [MaxLength(255)]
@@ -72,13 +68,10 @@ public class MediaAsset : Entity
 
     public static MediaAsset Create(
         Guid uploadBatchId,
-        Guid userId,
         string originalFileName,
         string mimeType,
         long size,
-        string tempMinIOPath,
         string? title = null,
-        MediaAssetStatus status = MediaAssetStatus.PENDING,
         List<string>? tags = null,
         JsonDocument? metadata = null)
     {
@@ -86,13 +79,12 @@ public class MediaAsset : Entity
         {
             Id = Guid.NewGuid(),
             UploadBatchId = uploadBatchId,
-            UserId = userId,
             OriginalFileName = originalFileName,
             Title = title,
             MimeType = mimeType,
             Size = size,
             FinalPath = null,
-            Status = status,
+            Status = MediaAssetStatus.PENDING,
             RetryCount = 0,
             CreatedAt = DateTime.UtcNow,
             LastAttemptAt = null,

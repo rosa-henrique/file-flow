@@ -95,10 +95,6 @@ namespace FileFlow.MigrationService.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("upload_batch_id");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("user_id");
-
                     b.HasKey("Id");
 
                     b.HasIndex("UploadBatchId");

@@ -34,7 +34,6 @@ namespace FileFlow.MigrationService.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     upload_batch_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    user_id = table.Column<Guid>(type: "uuid", nullable: false),
                     original_file_name = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     title = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
                     mime_type = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
