@@ -31,7 +31,7 @@ export interface GetUploadBatchesResponse {
   providedIn: 'root',
 })
 export class UploadBatchService {
-  private apiUrl = 'api/upload-batches';
+  private apiUrl = 'api/upload-batch';
 
   constructor(private httpClient: HttpClient) {}
 
@@ -39,7 +39,7 @@ export class UploadBatchService {
     return this.httpClient.get<GetUploadBatchesResponse[]>(this.apiUrl);
   }
 
-  create(payload: { name: string }): Observable<GetUploadBatchesResponse> {
-    return this.httpClient.post<GetUploadBatchesResponse>(this.apiUrl, payload);
+  create(payload: { name: string }): Observable<void> {
+    return this.httpClient.post<void>(this.apiUrl, payload);
   }
 }
