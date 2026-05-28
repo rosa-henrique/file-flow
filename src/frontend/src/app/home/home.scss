@@ -97,31 +97,31 @@ mat-cell {
   font-weight: 500;
   white-space: nowrap;
 
-  &.status-Pendente {
+  &.status-pending {
     background-color: rgba(255, 193, 7, 0.2);
     color: #ffe082;
     border: 1px solid #fbc02d;
   }
 
-  &.status-Processando {
+  &.status-processing {
     background-color: rgba(33, 150, 243, 0.2);
     color: #64b5f6;
     border: 1px solid #1976d2;
   }
 
-  &.status-Completado {
+  &.status-completed {
     background-color: rgba(76, 175, 80, 0.2);
     color: #81c784;
     border: 1px solid #388e3c;
   }
 
-  &.status-EnviadoParcialmente {
+  &.status-partial {
     background-color: rgba(255, 152, 0, 0.2);
     color: #ffb74d;
     border: 1px solid #f57c00;
   }
 
-  &.status-ComErro {
+  &.status-failed {
     background-color: rgba(244, 67, 54, 0.2);
     color: #ef5350;
     border: 1px solid #c62828;

@@ -2,4 +2,4 @@ using MediatR;
 
 namespace FileFlow.Application.Commands.CreateUploadBatch;
 
-public record CreateUploadBatchRequest(string Name) : IRequest<Guid>;
+public record CreateUploadBatchCommand(string Name) : IRequest<Guid>;

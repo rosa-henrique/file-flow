@@ -2,7 +2,7 @@ using FluentValidation;
 
 namespace FileFlow.Application.Commands.CreateUploadBatch;
 
-public class CreateUploadBatchValidator : AbstractValidator<CreateUploadBatchRequest>
+public class CreateUploadBatchValidator : AbstractValidator<CreateUploadBatchCommand>
 {
     public CreateUploadBatchValidator()
     {

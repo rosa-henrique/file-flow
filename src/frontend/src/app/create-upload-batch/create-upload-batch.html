@@ -2,7 +2,7 @@
   <h1>Criar Novo Lote de Upload</h1>
 
   <form [formGroup]="form" (ngSubmit)="onSubmit()" class="upload-form">
-    <!-- Campo Nome -->
+    <!-- Campo Nome do Lote -->
     <div class="form-group">
       <label for="name" class="form-label">
         Nome do Lote <span class="required">*</span>
@@ -29,36 +29,135 @@
       }
     </div>
 
-    <!-- Seção de Upload de Arquivos -->
-    <div class="form-group">
-      <label for="files" class="form-label"> Arquivos para Upload </label>
-      <input
-        id="files"
-        type="file"
-        multiple
-        (change)="onFilesSelected($event)"
-        class="form-input"
-        accept="*"
-      />
-      <p class="file-hint">Você pode selecionar múltiplos arquivos</p>
+    <!-- Seção de Itens da Lista -->
+    <div class="form-group items-section">
+      <div class="items-header">
+        <h2>Itens do Lote <span class="required">*</span></h2>
+        <button
+          type="button"
+          class="btn btn-add-item"
+          (click)="addItem()"
+        >
+          + Adicionar Item
+        </button>
+      </div>
 
-      @if (selectedFiles.length > 0) {
-        <div class="selected-files">
-          <h3>Arquivos Selecionados ({{ selectedFiles.length }})</h3>
-          <ul>
-            @for (file of selectedFiles; track file.name) {
-              <li>
-                {{ file.name }} ({{ formatFileSize(file.size) }})
-              </li>
-            }
-          </ul>
-          <button
-            type="button"
-            class="btn-clear"
-            (click)="clearFiles()"
-          >
-            Limpar Seleção
-          </button>
+      @if (items.length === 0) {
+        <div class="empty-state">
+          <p>Nenhum item adicionado. Clique em "Adicionar Item" para começar.</p>
+        </div>
+      }
+
+      <div formArrayName="items" class="items-list">
+        @for (item of items.controls; let i = $index; track i) {
+          <div [formGroupName]="i" class="item-card">
+            <div class="item-header">
+              <h3>Item {{ i + 1 }}</h3>
+              @if (items.length > 1) {
+                <button
+                  type="button"
+                  class="btn-remove"
+                  (click)="removeItem(i)"
+                  aria-label="Remover item"
+                >
+                  ✕
+                </button>
+              }
+            </div>
+
+            <!-- Campo Título -->
+            <div class="form-group">
+              <label [for]="'title-' + i" class="form-label">
+                Título <span class="required">*</span>
+              </label>
+              <input
+                [id]="'title-' + i"
+                type="text"
+                formControlName="title"
+                class="form-input"
+                placeholder="Ex: Documento de Identidade"
+                [class.is-invalid]="
+                  item.get('title')?.invalid && item.get('title')?.touched
+                "
+              />
+              @if (item.get('title')?.invalid && item.get('title')?.touched) {
+                <div class="error-message">
+                  @if (item.get('title')?.hasError('required')) {
+                    <p>O título é obrigatório</p>
+                  }
+                  @if (item.get('title')?.hasError('minlength')) {
+                    <p>O título deve ter no mínimo 2 caracteres</p>
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Campo Tags -->
+            <div class="form-group">
+              <label [for]="'tags-' + i" class="form-label">
+                Tags <span class="required">*</span>
+              </label>
+              <input
+                [id]="'tags-' + i"
+                type="text"
+                formControlName="tags"
+                class="form-input"
+                placeholder="Ex: documento, importante, 2024"
+              />
+              <p class="field-hint">
+                Separe as tags por vírgula
+              </p>
+              @if (item.get('tags')?.invalid && item.get('tags')?.touched) {
+                <div class="error-message">
+                  @if (item.get('tags')?.hasError('required')) {
+                    <p>As tags são obrigatórias</p>
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Campo Arquivo -->
+            <div class="form-group">
+              <label [for]="'file-' + i" class="form-label">
+                Arquivo <span class="required">*</span>
+              </label>
+              <input
+                [id]="'file-' + i"
+                type="file"
+                (change)="onFileSelected($event, i)"
+                class="form-input"
+                accept="*"
+              />
+              <div class="file-info">
+                @if (item.get('file')?.value) {
+                  <div class="file-details">
+                    <p class="file-name">{{ getFileDisplayName(i) }}</p>
+                    <p class="file-size">{{ getFileSize(i) }}</p>
+                  </div>
+                } @else {
+                  <p class="no-file">Nenhum arquivo selecionado</p>
+                }
+              </div>
+              @if (item.get('file')?.invalid && item.get('file')?.touched) {
+                <div class="error-message">
+                  @if (item.get('file')?.hasError('required')) {
+                    <p>O arquivo é obrigatório</p>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      @if (items.invalid && form.touched) {
+        <div class="error-message">
+          @if (items.hasError('minlength')) {
+            <p>Adicione pelo menos um item ao lote</p>
+          }
+          @if (items.hasError('required')) {
+            <p>Todos os itens devem estar preenchidos corretamente</p>
+          }
         </div>
       }
     </div>
@@ -68,7 +167,7 @@
       <button
         type="submit"
         class="btn btn-primary"
-        [disabled]="form.invalid || isSubmitting"
+        [disabled]="form.invalid || isSubmitting || items.length === 0"
       >
         @if (isSubmitting) {
           <span>Enviando...</span>
