@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 
 using FileFlow.Api;
 using FileFlow.Application;
+using FileFlow.Application.Commands.CompleteUploadMultiPart;
 using FileFlow.Application.Commands.CreateUploadBatch;
 using FileFlow.Application.Commands.GenerateUploadUrl;
 using FileFlow.Application.Queries.GetUploadBatches;
@@ -51,15 +52,18 @@ app.MapGet("upload-batch", (IMediator mediator) =>
     return mediator.Send(request);
 });
 
-app.MapPost("upload-batch", async ([FromBody] CreateUploadBatchCommand createUploadBatchCommand, IMediator mediator) =>
+app.MapPost("upload-batch", async ([FromBody] CreateUploadBatchCommand request, IMediator mediator) =>
 {
-    var uploadBatchId = await mediator.Send(createUploadBatchCommand);
+    var uploadBatchId = await mediator.Send(request);
 
     return Results.Created($"/upload-batch/{uploadBatchId}", uploadBatchId);
 });
 
-app.MapPost("file/generate-upload-url", ([FromBody] GenerateUploadUrlCommand generateUploadUrlCommand, IMediator mediator)
-    => mediator.Send(generateUploadUrlCommand));
+app.MapPost("file/generate-upload-url", ([FromBody] GenerateUploadUrlCommand request, IMediator mediator)
+    => mediator.Send(request));
+
+app.MapPost("file/complete-multipart-upload", ([FromBody] CompleteUploadMultiPartCommand request, IMediator mediator)
+    => mediator.Send(request));
 
 app.Run();
 

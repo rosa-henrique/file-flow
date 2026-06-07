@@ -49,7 +49,7 @@ public class GenerateUploadUrlCommandHandler(IAmazonS3 amazonS3Client, IConfigur
         var preSignedUrl =
             await amazonS3Client.GetPreSignedURLAsync(preSignedUrlRequest);
 
-        return new GenerateUploadUrlSimpleResponse(preSignedUrl);
+        return new GenerateUploadUrlSimpleResponse(preSignedUrl, objectKey);
     }
 
     /// <summary>
@@ -78,8 +78,9 @@ public class GenerateUploadUrlCommandHandler(IAmazonS3 amazonS3Client, IConfigur
 
         return new GenerateUploadUrlMultiPartResponse(
             uploadId,
+            objectKey,
             partSize,
-            fileUrls);
+            fileUrls.OrderBy(x => x.PartNumber));
     }
 
     /// <summary>
