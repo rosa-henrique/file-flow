@@ -5,13 +5,13 @@ using MediatR;
 
 using Microsoft.Extensions.Configuration;
 
-namespace FileFlow.Application.Commands.CompleteUploadMultiPart;
+namespace FileFlow.Application.Commands.CompleteMultiPartUpload;
 
-public class CompleteUploadMultiPartCommandHandler(IAmazonS3 s3Client, IConfiguration configuration) : IRequestHandler<CompleteUploadMultiPartCommand>
+public class CompleteMultiPartUploadCommandHandler(IAmazonS3 s3Client, IConfiguration configuration) : IRequestHandler<CompleteMultiPartUploadCommand>
 {
     private readonly string _bucketTemporary = configuration.GetValue<string>("S3:BucketTemporary")!;
 
-    public async Task Handle(CompleteUploadMultiPartCommand request, CancellationToken cancellationToken)
+    public async Task Handle(CompleteMultiPartUploadCommand request, CancellationToken cancellationToken)
     {
         var partETags = request.ETags
             .OrderBy(e => e.PartNumber)

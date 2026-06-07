@@ -2,7 +2,8 @@ using System.Text.Json.Serialization;
 
 using FileFlow.Api;
 using FileFlow.Application;
-using FileFlow.Application.Commands.CompleteUploadMultiPart;
+using FileFlow.Application.Commands.CancelMultiPartUpload;
+using FileFlow.Application.Commands.CompleteMultiPartUpload;
 using FileFlow.Application.Commands.CreateUploadBatch;
 using FileFlow.Application.Commands.GenerateUploadUrl;
 using FileFlow.Application.Queries.GetUploadBatches;
@@ -62,8 +63,16 @@ app.MapPost("upload-batch", async ([FromBody] CreateUploadBatchCommand request, 
 app.MapPost("file/generate-upload-url", ([FromBody] GenerateUploadUrlCommand request, IMediator mediator)
     => mediator.Send(request));
 
-app.MapPost("file/complete-multipart-upload", ([FromBody] CompleteUploadMultiPartCommand request, IMediator mediator)
+app.MapPost("file/complete-multipart-upload", ([FromBody] CompleteMultiPartUploadCommand request, IMediator mediator)
     => mediator.Send(request));
+
+app.MapDelete("file/cancel-multipart-upload/{objectKey}/{uploadId}",
+    async (string objectKey, string uploadId, IMediator mediator)
+        =>
+    {
+        var request = new CancelMultiPartUploadCommand(uploadId, objectKey);
+        await mediator.Send(request);
+    });
 
 app.Run();
 

@@ -166,12 +166,30 @@ export class UploadFile {
       }),
       catchError((error) => {
         console.error('[UploadFile] Erro ao fazer upload multiparte:', error);
-        return throwError(
-          () =>
-            new Error(
-              error?.message ||
-                'Falha ao fazer upload multiparte do arquivo. Tente novamente.'
-            )
+        // Ao detectar erro, cancela o upload multiparte
+        return this.cancelMultipartUpload(response.objectKey, response.uploadId).pipe(
+          switchMap(() => {
+            return throwError(
+              () =>
+                new Error(
+                  error?.message ||
+                    'Falha ao fazer upload multiparte do arquivo. Tente novamente.'
+                )
+            );
+          }),
+          catchError((cancelError) => {
+            console.error(
+              '[UploadFile] Erro ao cancelar upload multiparte:',
+              cancelError
+            );
+            return throwError(
+              () =>
+                new Error(
+                  error?.message ||
+                    'Falha ao fazer upload multiparte do arquivo. Tente novamente.'
+                )
+            );
+          })
         );
       }),
       finalize(() => console.log('[UploadFile] Upload multiparte finalizado'))
@@ -274,5 +292,28 @@ export class UploadFile {
           );
         })
       );
+  }
+
+  /**
+   * Cancela o upload multiparte e deleta dados no backend
+   */
+  private cancelMultipartUpload(
+    objectKey: string,
+    uploadId: string
+  ): Observable<void> {
+    const cancelUrl = `${this.apiUrl}/cancel-multipart-upload/${objectKey}/${uploadId}`;
+    console.log('[UploadFile] Cancelando upload multiparte:', cancelUrl);
+
+    return this.httpClient.delete<void>(cancelUrl).pipe(
+      switchMap(() => {
+        console.log('[UploadFile] Upload multiparte cancelado com sucesso');
+        return of(void 0);
+      }),
+      catchError((error) => {
+        console.error('[UploadFile] Erro ao cancelar upload multiparte:', error);
+        // Mesmo se falhar ao cancelar, continua com o erro original
+        return of(void 0);
+      })
+    );
   }
 }
