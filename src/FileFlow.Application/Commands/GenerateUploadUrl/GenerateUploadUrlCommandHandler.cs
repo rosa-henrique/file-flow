@@ -122,7 +122,7 @@ public class GenerateUploadUrlCommandHandler(IAmazonS3 amazonS3Client, IConfigur
             Verb = HttpVerb.PUT,
             Expires = DateTime.UtcNow.Add(expiration),
             ContentType = request.ContentType,
-            Protocol = Protocol.HTTPS,
+            Protocol = Protocol.HTTP,
             UploadId = uploadId,
             PartNumber = partNumber,
         };

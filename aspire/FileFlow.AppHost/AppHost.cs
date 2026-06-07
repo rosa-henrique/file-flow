@@ -1,11 +1,14 @@
+using FileFlow.AppHost.Extension;
+
 var builder = DistributedApplication.CreateBuilder(args);
 
-var minio = builder.AddMinioContainer("minio")
+var rustFs = builder.AddRustFsContainer("rustfs")
     .WithLifetime(ContainerLifetime.Persistent);
 
 var postgres = builder.AddPostgres("postgres")
     .WithPgWeb()
     .WithLifetime(ContainerLifetime.Persistent);
+
 var fileFlowDb = postgres.AddDatabase("fileflow", "file_flow");
 
 var migrations = builder.AddProject<Projects.FileFlow_MigrationService>("migrations")
@@ -14,9 +17,9 @@ var migrations = builder.AddProject<Projects.FileFlow_MigrationService>("migrati
 
 var api = builder.AddProject<Projects.FileFlow_Api>("api")
     .WithHttpHealthCheck("/health")
-    .WithReference(minio)
+    .WithReference(rustFs)
     .WithReference(fileFlowDb)
-    .WaitFor(minio)
+    .WaitFor(rustFs)
     .WaitForCompletion(migrations);
 
 builder.AddJavaScriptApp("frontend", "../../src/frontend")

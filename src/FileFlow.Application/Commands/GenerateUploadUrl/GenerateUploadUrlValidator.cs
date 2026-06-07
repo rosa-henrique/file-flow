@@ -9,5 +9,9 @@ public class GenerateUploadUrlValidator : AbstractValidator<GenerateUploadUrlCom
         RuleFor(c => c.FileSize)
             .GreaterThan(0)
             .WithMessage("File size must be greater than zero");
+
+        RuleFor(c => c.ContentType)
+            .NotEmpty()
+            .WithMessage("Content type is required");
     }
 }

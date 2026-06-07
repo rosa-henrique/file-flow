@@ -8,17 +8,7 @@ import {
 } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { UploadBatchService } from '../upload-batch';
-
-export interface BatchItem {
-  file: File;
-  title: string;
-  tags: string | string[];
-}
-
-export interface CreateUploadBatchRequest {
-  name: string;
-  items: BatchItem[];
-}
+import { UploadFile, GenerateUploadUrlResponse } from '../upload-file';
 
 @Component({
   selector: 'app-create-upload-batch',
@@ -32,7 +22,8 @@ export class CreateUploadBatch implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private uploadBatchService: UploadBatchService
+    private uploadBatchService: UploadBatchService,
+    private uploadFile: UploadFile
   ) {}
 
   ngOnInit(): void {
@@ -55,6 +46,11 @@ export class CreateUploadBatch implements OnInit {
       file: [null, Validators.required],
       title: ['', [Validators.required, Validators.minLength(2)]],
       tags: ['', Validators.required],
+      // Campos de upload
+      uploadStatus: ['pending'], // 'pending' | 'uploading' | 'completed' | 'error'
+      uploadProgress: [0],
+      uploadUrl: [null],
+      uploadError: [null],
     });
     this.items.push(itemGroup);
   }
@@ -68,8 +64,42 @@ export class CreateUploadBatch implements OnInit {
     const files = target.files;
 
     if (files && files.length > 0) {
-      this.items.at(index).patchValue({
-        file: files[0],
+      const file = files[0];
+      const itemControl = this.items.at(index);
+
+      // Atualiza o arquivo e marca como uploading
+      itemControl.patchValue({
+        file,
+        uploadStatus: 'uploading',
+        uploadProgress: 0,
+        uploadError: null,
+      });
+
+      console.log(`[CreateUploadBatch] Iniciando upload do arquivo: ${file.name}`);
+
+      // Faz upload imediatamente ao selecionar
+      this.uploadFile.uploadFile({ file }).subscribe({
+        next: (response: GenerateUploadUrlResponse) => {
+          console.log(
+            `[CreateUploadBatch] Upload concluído: ${file.name}`,
+            response
+          );
+          itemControl.patchValue({
+            uploadStatus: 'completed',
+            uploadProgress: 100,
+            uploadUrl: (response as any).uploadUrl,
+          });
+        },
+        error: (error) => {
+          console.error(
+            `[CreateUploadBatch] Erro ao fazer upload: ${file.name}`,
+            error
+          );
+          itemControl.patchValue({
+            uploadStatus: 'error',
+            uploadError: error.message || 'Erro ao fazer upload',
+          });
+        },
       });
     }
   }
@@ -87,35 +117,47 @@ export class CreateUploadBatch implements OnInit {
 
   onSubmit(): void {
     if (this.form.invalid || this.items.length === 0) {
+      console.warn('[CreateUploadBatch] Formulário inválido ou sem itens');
+      return;
+    }
+
+    // Valida se todos os uploads foram completados com sucesso
+    const itemsArray = this.items.value;
+    const allUploadsCompleted = itemsArray.every(
+      (item: any) => item.uploadStatus === 'completed' && item.uploadUrl
+    );
+
+    if (!allUploadsCompleted) {
+      console.warn('[CreateUploadBatch] Nem todos os arquivos foram uploadados com sucesso');
+      alert('Por favor, certifique-se de que todos os arquivos foram uploadados com sucesso.');
       return;
     }
 
     this.isSubmitting = true;
 
-    // Processa os itens, convertendo tags de string para array
-    const processedItems: BatchItem[] = this.items.value.map((item: any) => ({
-      file: item.file,
-      title: item.title.trim(),
-      tags: this.parseTags(item.tags),
-    }));
-
-    const payload: CreateUploadBatchRequest = {
+    // Constrói o payload com os dados dos itens e URLs já uploadadas
+    const payload = {
       name: this.form.get('name')?.value.trim(),
-      items: processedItems,
+      items: itemsArray.map((item: any) => ({
+        title: item.title.trim(),
+        tags: this.parseTags(item.tags),
+        uploadUrl: item.uploadUrl, // URL já no storage
+      })),
     };
 
-    console.log('Enviando:', payload);
+    console.log('[CreateUploadBatch] Enviando lote com arquivos já uploadados:', payload);
 
     this.uploadBatchService.create(payload).subscribe({
       next: (response) => {
-        console.log('Lote criado com sucesso:', response);
+        console.log('[CreateUploadBatch] Lote criado com sucesso:', response);
         this.isSubmitting = false;
         this.form.reset();
         this.items.clear();
       },
       error: (error) => {
-        console.error('Erro ao criar lote:', error);
+        console.error('[CreateUploadBatch] Erro ao criar lote:', error);
         this.isSubmitting = false;
+        alert('Erro ao criar o lote. Tente novamente.');
       },
     });
   }
