@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json;
 
 namespace FileFlow.Data.Entities;
 
@@ -23,7 +24,9 @@ public class UploadBatch : Entity
     public DateTime? CompletedAt { get; private set; }
 
     [InverseProperty(nameof(MediaAsset.UploadBatch))]
-    public List<MediaAsset> MediaAssets { get; private set; } = [];
+    private readonly List<MediaAsset> _mediaAssets = [];
+
+    public IReadOnlyCollection<MediaAsset> MediaAssets => _mediaAssets;
 
     public static UploadBatch Create(string name)
     {
@@ -35,6 +38,25 @@ public class UploadBatch : Entity
             CreatedAt = DateTime.UtcNow,
             CompletedAt = null,
         };
+    }
+
+    public void AddMediaAsset(
+        string originalFileName,
+        string mimeType,
+        long size,
+        string title,
+        List<string>? tags,
+        JsonDocument? metadata)
+    {
+        _mediaAssets.Add(
+            MediaAsset.Create(
+                Id,
+                originalFileName,
+                mimeType,
+                size,
+                title,
+                tags,
+                metadata));
     }
 
     public void MarkCompleted(DateTime completedAt, UploadBatchStatus status = UploadBatchStatus.COMPLETED)

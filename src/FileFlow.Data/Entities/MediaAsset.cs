@@ -64,7 +64,9 @@ public class MediaAsset : Entity
     public JsonDocument? Metadata { get; private set; }
 
     [InverseProperty(nameof(MediaAssetLog.MediaAsset))]
-    public List<MediaAssetLog> Logs { get; private set; } = [];
+    private readonly List<MediaAssetLog> _logs = [];
+
+    public IReadOnlyCollection<MediaAssetLog> Logs => _logs;
 
     public static MediaAsset Create(
         Guid uploadBatchId,

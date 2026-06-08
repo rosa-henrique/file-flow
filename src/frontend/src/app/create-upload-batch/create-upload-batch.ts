@@ -46,11 +46,17 @@ export class CreateUploadBatch implements OnInit {
       file: [null, Validators.required],
       title: ['', [Validators.required, Validators.minLength(2)]],
       tags: ['', Validators.required],
+      // Dados do arquivo
+      originalFileName: [null],
+      mimeType: [null],
+      size: [null],
       // Campos de upload
       uploadStatus: ['pending'], // 'pending' | 'uploading' | 'completed' | 'error'
       uploadProgress: [0],
-      uploadUrl: [null],
+      objectKey: [null],
       uploadError: [null],
+      // Metadados técnicos (ex: resolução, duração, etc)
+      metadata: [null],
     });
     this.items.push(itemGroup);
   }
@@ -67,41 +73,143 @@ export class CreateUploadBatch implements OnInit {
       const file = files[0];
       const itemControl = this.items.at(index);
 
-      // Atualiza o arquivo e marca como uploading
-      itemControl.patchValue({
-        file,
-        uploadStatus: 'uploading',
-        uploadProgress: 0,
-        uploadError: null,
-      });
+      // Extrai metadados técnicos do arquivo
+      this.extractFileMetadata(file).then((metadata) => {
+        // Atualiza o arquivo e marca como uploading
+        itemControl.patchValue({
+          file,
+          originalFileName: file.name,
+          mimeType: file.type,
+          size: file.size,
+          metadata,
+          uploadStatus: 'uploading',
+          uploadProgress: 0,
+          uploadError: null,
+        });
 
-      console.log(`[CreateUploadBatch] Iniciando upload do arquivo: ${file.name}`);
+        console.log(`[CreateUploadBatch] Iniciando upload do arquivo: ${file.name}`);
 
-      // Faz upload imediatamente ao selecionar
-      this.uploadFile.uploadFile({ file }).subscribe({
-        next: (response: GenerateUploadUrlResponse) => {
-          console.log(
-            `[CreateUploadBatch] Upload concluído: ${file.name}`,
-            response
-          );
-          itemControl.patchValue({
-            uploadStatus: 'completed',
-            uploadProgress: 100,
-            uploadUrl: (response as any).uploadUrl,
-          });
-        },
-        error: (error) => {
-          console.error(
-            `[CreateUploadBatch] Erro ao fazer upload: ${file.name}`,
-            error
-          );
-          itemControl.patchValue({
-            uploadStatus: 'error',
-            uploadError: error.message || 'Erro ao fazer upload',
-          });
-        },
+        // Faz upload imediatamente ao selecionar
+        this.uploadFile.uploadFile({ file }).subscribe({
+          next: (response: GenerateUploadUrlResponse) => {
+            console.log(
+              `[CreateUploadBatch] Upload concluído: ${file.name}`,
+              response
+            );
+            itemControl.patchValue({
+              uploadStatus: 'completed',
+              uploadProgress: 100,
+              objectKey: response.objectKey,
+            });
+          },
+          error: (error) => {
+            console.error(
+              `[CreateUploadBatch] Erro ao fazer upload: ${file.name}`,
+              error
+            );
+            itemControl.patchValue({
+              uploadStatus: 'error',
+              uploadError: error.message || 'Erro ao fazer upload',
+            });
+          },
+        });
       });
     }
+  }
+
+  private async extractFileMetadata(file: File): Promise<any> {
+    const metadata: any = {};
+
+    // Extrai metadados para imagens
+    if (file.type.startsWith('image/')) {
+      try {
+        const imageMetadata = await this.extractImageMetadata(file);
+        Object.assign(metadata, imageMetadata);
+      } catch (error) {
+        console.warn('[CreateUploadBatch] Erro ao extrair metadados de imagem:', error);
+      }
+    }
+
+    // Extrai metadados para vídeos
+    if (file.type.startsWith('video/')) {
+      try {
+        const videoMetadata = await this.extractVideoMetadata(file);
+        Object.assign(metadata, videoMetadata);
+      } catch (error) {
+        console.warn('[CreateUploadBatch] Erro ao extrair metadados de vídeo:', error);
+      }
+    }
+
+    return Object.keys(metadata).length > 0 ? metadata : null;
+  }
+
+  private extractImageMetadata(file: File): Promise<any> {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+
+      reader.onload = (e: any) => {
+        const img = new Image();
+        img.onload = () => {
+          resolve({
+            type: 'image',
+            width: img.width,
+            height: img.height,
+            resolution: `${img.width}x${img.height}`,
+          });
+        };
+        img.onerror = () => {
+          resolve({});
+        };
+        img.src = e.target.result;
+      };
+
+      reader.onerror = () => {
+        resolve({});
+      };
+
+      reader.readAsDataURL(file);
+    });
+  }
+
+  private extractVideoMetadata(file: File): Promise<any> {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+
+      reader.onload = (e: any) => {
+        const video = document.createElement('video');
+        video.onloadedmetadata = () => {
+          resolve({
+            type: 'video',
+            duration: Math.round(video.duration),
+            durationFormatted: this.formatDuration(video.duration),
+          });
+        };
+        video.onerror = () => {
+          resolve({});
+        };
+        video.src = e.target.result;
+      };
+
+      reader.onerror = () => {
+        resolve({});
+      };
+
+      reader.readAsDataURL(file);
+    });
+  }
+
+  private formatDuration(seconds: number): string {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = Math.floor(seconds % 60);
+
+    if (hours > 0) {
+      return `${hours}h ${minutes}m ${secs}s`;
+    }
+    if (minutes > 0) {
+      return `${minutes}m ${secs}s`;
+    }
+    return `${secs}s`;
   }
 
   getFileDisplayName(index: number): string {
@@ -124,7 +232,7 @@ export class CreateUploadBatch implements OnInit {
     // Valida se todos os uploads foram completados com sucesso
     const itemsArray = this.items.value;
     const allUploadsCompleted = itemsArray.every(
-      (item: any) => item.uploadStatus === 'completed' && item.uploadUrl
+      (item: any) => item.uploadStatus === 'completed' && item.objectKey
     );
 
     if (!allUploadsCompleted) {
@@ -135,17 +243,21 @@ export class CreateUploadBatch implements OnInit {
 
     this.isSubmitting = true;
 
-    // Constrói o payload com os dados dos itens e URLs já uploadadas
+    // Constrói o payload com os dados dos itens
     const payload = {
       name: this.form.get('name')?.value.trim(),
-      items: itemsArray.map((item: any) => ({
+      filesInfo: itemsArray.map((item: any) => ({
+        objectKey: item.objectKey, // Object key do arquivo no storage
+        originalFileName: item.originalFileName,
+        mimeType: item.mimeType,
+        size: item.size,
         title: item.title.trim(),
         tags: this.parseTags(item.tags),
-        uploadUrl: item.uploadUrl, // URL já no storage
+        metadata: item.metadata || null, // Dados técnicos extraídos automaticamente
       })),
     };
 
-    console.log('[CreateUploadBatch] Enviando lote com arquivos já uploadados:', payload);
+    console.log('[CreateUploadBatch] Enviando lote com arquivos e metadados:', payload);
 
     this.uploadBatchService.create(payload).subscribe({
       next: (response) => {

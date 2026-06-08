@@ -29,7 +29,7 @@ export interface GetUploadBatchesResponse {
 
 export interface CreateUploadBatchPayload {
   name: string;
-  items: Array<{
+  filesInfo: Array<{
     title: string;
     tags: string[];
     uploadUrl: string; // URL já no object storage (S3, etc)

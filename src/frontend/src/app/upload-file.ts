@@ -1,6 +1,6 @@
 import { HttpClient, HttpRequest, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { catchError, Observable, throwError, switchMap, of, finalize, forkJoin } from 'rxjs';
+import { catchError, Observable, throwError, switchMap, of, finalize, forkJoin, filter } from 'rxjs';
 
 export interface GenerateUploadUrlRequest {
   fileSize: number;
@@ -9,6 +9,7 @@ export interface GenerateUploadUrlRequest {
 
 export interface GenerateUploadUrlResponse {
   type: "SIMPLE"|"MULTIPART";
+  objectKey: string;
 }
 
 export interface GenerateUploadUrlSimpleResponse extends GenerateUploadUrlResponse {
@@ -23,7 +24,6 @@ export interface FileUrlPart {
 
 export interface GenerateUploadUrlMultiPartResponse extends GenerateUploadUrlResponse {
   uploadId: string;
-  objectKey: string;
   partSize: number; // Tamanho de cada parte (ex: 5MB)
   fileUrls: FileUrlPart[];
 }
@@ -103,6 +103,7 @@ export class UploadFile {
     return this.httpClient
       .request<void>(request)
       .pipe(
+        filter((event: any) => event.type === 4), // Filtra apenas HttpResponse (final)
         catchError((error) => {
           console.error('[UploadFile] Erro ao fazer upload simples:', error);
           return throwError(
@@ -235,21 +236,19 @@ export class UploadFile {
     return this.httpClient
       .request<void>(request)
       .pipe(
+        filter((event: any) => event.type === 4), // Filtra apenas HttpResponse
         switchMap((event: any) => {
           // Captura o eTag do header da resposta
-          if (event.type === 4) { // HttpResponse
-            const eTag = event.headers.get('etag');
-            if (!eTag) {
-              return throwError(
-                () => new Error(`ETag não encontrado na resposta para a parte ${partNumber}`)
-              );
-            }
-            console.log(
-              `[UploadFile] Parte ${partNumber} enviada com sucesso. ETag: ${eTag}`
+          const eTag = event.headers.get('etag');
+          if (!eTag) {
+            return throwError(
+              () => new Error(`ETag não encontrado na resposta para a parte ${partNumber}`)
             );
-            return of({ partNumber, eTag });
           }
-          return of(null as any);
+          console.log(
+            `[UploadFile] Parte ${partNumber} enviada com sucesso. ETag: ${eTag}`
+          );
+          return of({ partNumber, eTag });
         }),
         catchError((error) => {
           console.error(
