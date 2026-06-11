@@ -62,7 +62,6 @@ public class MediaAssetLog
 
 public enum MediaAssetEventType
 {
-    PRE_REGISTERED,
     UPLOAD_CONFIRMED,
     MIGRATION_STARTED,
     MIGRATION_COMPLETED,

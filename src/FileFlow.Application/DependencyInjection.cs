@@ -1,14 +1,16 @@
 using FileFlow.Application.Behaviors;
+using FileFlow.Data.Context;
 
 using FluentValidation;
 
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FileFlow.Application;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddApplication(this IServiceCollection services)
+    public static IServiceCollection AddApplication(this IServiceCollection services, IConfiguration configuration)
     {
         var assembly = typeof(DependencyInjection).Assembly;
 
@@ -21,6 +23,25 @@ public static class DependencyInjection
         });
 
         services.AddValidatorsFromAssembly(assembly);
+
+        services.AddCap(options =>
+        {
+            options.UseEntityFramework<FileFlowDbContext>();
+            options.UseRabbitMQ(opt =>
+            {
+                opt.ConnectionFactoryOptions = x =>
+                {
+                    x.HostName = configuration["RABBITMQ_HOST"]!;
+                    x.Port = int.Parse(configuration["RABBITMQ_PORT"]!);
+                    x.UserName = configuration["RABBITMQ_USERNAME"]!;
+                    x.Password = configuration["RABBITMQ_PASSWORD"]!;
+                };
+            });
+            options.UseDashboard(opt =>
+            {
+                opt.AllowAnonymousExplicit = true;
+            });
+        });
 
         return services;
     }

@@ -40,7 +40,7 @@ public class UploadBatch : Entity
         };
     }
 
-    public void AddMediaAsset(
+    public MediaAsset AddMediaAsset(
         string originalFileName,
         string mimeType,
         long size,
@@ -48,15 +48,18 @@ public class UploadBatch : Entity
         List<string>? tags,
         JsonDocument? metadata)
     {
-        _mediaAssets.Add(
-            MediaAsset.Create(
-                Id,
-                originalFileName,
-                mimeType,
-                size,
-                title,
-                tags,
-                metadata));
+        var mediaAsset = MediaAsset.Create(
+            Id,
+            originalFileName,
+            mimeType,
+            size,
+            title,
+            tags,
+            metadata);
+
+        _mediaAssets.Add(mediaAsset);
+
+        return mediaAsset;
     }
 
     public void MarkCompleted(DateTime completedAt, UploadBatchStatus status = UploadBatchStatus.COMPLETED)
