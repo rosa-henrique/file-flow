@@ -69,6 +69,7 @@ public static class Extensions
                         tracing.Filter = context =>
                             !context.Request.Path.StartsWithSegments(HealthEndpointPath)
                             && !context.Request.Path.StartsWithSegments(AlivenessEndpointPath))
+                    .AddCapInstrumentation()
                     .AddHttpClientInstrumentation();
             });
 

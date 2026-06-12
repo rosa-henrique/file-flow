@@ -10,6 +10,7 @@
     <PackageVersion Include="AWSSDK.S3" Version="4.0.23.4" />
     <PackageVersion Include="DotNetCore.CAP" Version="10.0.1" />
     <PackageVersion Include="DotNetCore.CAP.Dashboard" Version="10.0.1" />
+    <PackageVersion Include="DotNetCore.CAP.OpenTelemetry" Version="10.0.1" />
     <PackageVersion Include="DotNetCore.CAP.PostgreSql" Version="10.0.1" />
     <PackageVersion Include="DotNetCore.CAP.RabbitMQ" Version="10.0.1" />
     <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />

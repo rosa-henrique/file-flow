@@ -45,16 +45,41 @@ public class MediaAssetLog
 
     private MediaAssetLog() { }
 
-    public static MediaAssetLog Create(Guid mediaAssetId, MediaAssetEventType eventType, string message, string tempPath, JsonDocument? details = null)
+    public static MediaAssetLog Create(Guid mediaAssetId,
+        MediaAssetEventType eventType,
+        string message,
+        string tempPath,
+        DateTime? timestamp = null,
+        JsonDocument? details = null)
     {
         return new MediaAssetLog
         {
             MediaAssetId = mediaAssetId,
-            Timestamp = DateTime.UtcNow,
+            Timestamp = timestamp ?? DateTime.UtcNow,
             EventType = eventType,
             TempPath = tempPath,
             Message = message,
             FinalPath = null,
+            Details = details,
+        };
+    }
+
+    public static MediaAssetLog Create(Guid mediaAssetId,
+        MediaAssetEventType eventType,
+        string message,
+        string tempPath,
+        string finalPath,
+        DateTime timestamp,
+        JsonDocument? details = null)
+    {
+        return new MediaAssetLog
+        {
+            MediaAssetId = mediaAssetId,
+            Timestamp = timestamp,
+            EventType = eventType,
+            TempPath = tempPath,
+            Message = message,
+            FinalPath = finalPath,
             Details = details,
         };
     }

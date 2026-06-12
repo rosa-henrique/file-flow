@@ -28,6 +28,14 @@ var api = builder.AddProject<Projects.FileFlow_Api>("api")
     .WaitFor(rabbitmq)
     .WaitForCompletion(migrations);
 
+builder.AddProject<Projects.FileFlow_Workers>("workers")
+    .WithReference(rustFs)
+    .WithReference(rabbitmq)
+    .WithReference(fileFlowDb)
+    .WaitFor(rustFs)
+    .WaitFor(rabbitmq)
+    .WaitForCompletion(migrations);
+
 builder.AddJavaScriptApp("frontend", "../../src/frontend")
     .WithRunScript("start")
     .WithHttpEndpoint(port: 4200, env: "PORT")
