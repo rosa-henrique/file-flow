@@ -4,6 +4,8 @@ using FileFlow.Data.Context;
 using FileFlow.Data.Entities;
 using FileFlow.Shared.Contracts;
 
+using Microsoft.EntityFrameworkCore;
+
 namespace FileFlow.Workers.Consumers;
 
 public class AuditConsumer(FileFlowDbContext dbContext, ILogger<AuditConsumer> logger) : ICapSubscribe
@@ -16,7 +18,8 @@ public class AuditConsumer(FileFlowDbContext dbContext, ILogger<AuditConsumer> l
         var log = MediaAssetLog.Create(@event.MediaAssetId,
             MediaAssetEventType.MIGRATION_STARTED,
             "Upload iniciado",
-            @event.TempPath);
+            @event.TempPath,
+            @event.TempBucket);
 
         dbContext.MediaAssetLogs.Add(log);
         await dbContext.SaveChangesAsync();
@@ -27,11 +30,12 @@ public class AuditConsumer(FileFlowDbContext dbContext, ILogger<AuditConsumer> l
     {
         logger.LogInformation("Iniciando criação de log de arquivo migrado para {@Event}", @event);
 
-        var log = MediaAssetLog.Create(@event.MediaAssetId,
-            MediaAssetEventType.MIGRATION_COMPLETED,
+        var log = MediaAssetLog.CreateComplete(@event.MediaAssetId,
             "Upload iniciado",
             @event.TempPath,
+            @event.TempBucket,
             @event.FinalPath,
+            @event.FinalBucket,
             @event.CompletedAt);
 
         dbContext.MediaAssetLogs.Add(log);
@@ -45,6 +49,7 @@ public class AuditConsumer(FileFlowDbContext dbContext, ILogger<AuditConsumer> l
             MediaAssetEventType.DELETED,
             "Arquivo apagado do bucket temporário",
             @event.TempPath,
+            @event.TempBucket,
             @event.CleanedAt);
 
         dbContext.MediaAssetLogs.Add(log);
@@ -58,6 +63,7 @@ public class AuditConsumer(FileFlowDbContext dbContext, ILogger<AuditConsumer> l
             MediaAssetEventType.MIGRATION_FAILED,
             "Falha ao migrar arquivo",
             @event.TempPath,
+            @event.TempBucket,
             @event.FailedAt,
             @event.Details);
 
@@ -72,13 +78,15 @@ public class AuditConsumer(FileFlowDbContext dbContext, ILogger<AuditConsumer> l
             MediaAssetEventType.MIGRATION_ATTEMPT_FAILED,
             "Tentativa de migração com erro",
             @event.TempPath,
+            @event.TempBucket,
             @event.FailedAt,
             @event.Details);
 
         var logRetry = MediaAssetLog.Create(@event.MediaAssetId,
             MediaAssetEventType.RETRY_INITIATED,
             "Retentativa de upload iniciado",
-            @event.TempPath);
+            @event.TempPath,
+            @event.TempBucket);
 
         dbContext.MediaAssetLogs.AddRange(log, logRetry);
         await dbContext.SaveChangesAsync();

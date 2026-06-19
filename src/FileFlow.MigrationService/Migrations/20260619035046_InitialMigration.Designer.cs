@@ -13,7 +13,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FileFlow.MigrationService.Migrations
 {
     [DbContext(typeof(FileFlowDbContext))]
-    [Migration("20260525012712_InitialMigration")]
+    [Migration("20260619035046_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />
@@ -21,7 +21,7 @@ namespace FileFlow.MigrationService.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.8")
+                .HasAnnotation("ProductVersion", "10.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -44,14 +44,15 @@ namespace FileFlow.MigrationService.Migrations
                         .HasColumnType("text")
                         .HasColumnName("error_message");
 
+                    b.Property<string>("FinalBucket")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("final_bucket");
+
                     b.Property<string>("FinalPath")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)")
                         .HasColumnName("final_path");
-
-                    b.Property<DateTime?>("LastAttemptAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_attempt_at");
 
                     b.Property<JsonDocument>("Metadata")
                         .HasColumnType("jsonb")
@@ -68,12 +69,6 @@ namespace FileFlow.MigrationService.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)")
                         .HasColumnName("original_file_name");
-
-                    b.Property<int>("RetryCount")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValue(0)
-                        .HasColumnName("retry_count");
 
                     b.Property<long>("Size")
                         .HasColumnType("bigint")
@@ -124,6 +119,11 @@ namespace FileFlow.MigrationService.Migrations
                         .HasColumnType("varchar(100)")
                         .HasColumnName("event_type");
 
+                    b.Property<string>("FinalBucket")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("final_bucket");
+
                     b.Property<string>("FinalPath")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)")
@@ -137,6 +137,12 @@ namespace FileFlow.MigrationService.Migrations
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("message");
+
+                    b.Property<string>("TempBucket")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("temp_bucket");
 
                     b.Property<string>("TempPath")
                         .IsRequired()

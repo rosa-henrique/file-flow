@@ -53,10 +53,6 @@ public class FileFlowDbContext : DbContext
              .HasColumnName("metadata")
              .HasColumnType("jsonb");
 
-            b.Property(p => p.RetryCount)
-             .HasColumnName("retry_count")
-             .HasDefaultValue(0);
-
             b.HasMany(m => m.Logs)
                .WithOne(l => l.MediaAsset)
                .HasForeignKey(l => l.MediaAssetId)

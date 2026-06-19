@@ -16,8 +16,6 @@ public class FileManagementConsumer(IAmazonS3 s3Client,
     ICapPublisher capPublisher,
     ILogger<FileManagementConsumer> logger) : ICapSubscribe
 {
-    private readonly string _bucketTemporary = configuration.GetValue<string>("S3:BucketTemporary")!;
-    private readonly string _bucketPermanent = configuration.GetValue<string>("S3:BucketPermanent")!;
     private readonly int _maxRetry = configuration.GetValue<int>("FileManagement:MaxRetry");
 
     [CapSubscribe("file.uploaded", Group = "fileflow.workers.management")]
@@ -33,7 +31,7 @@ public class FileManagementConsumer(IAmazonS3 s3Client,
     {
         var deleteObjectRequest = new DeleteObjectRequest
         {
-            BucketName = _bucketTemporary,
+            BucketName = @event.TempBucket,
             Key = @event.TempPath,
         };
 
@@ -44,6 +42,7 @@ public class FileManagementConsumer(IAmazonS3 s3Client,
             MediaAssetId = @event.MediaAssetId,
             CleanedAt = DateTime.UtcNow,
             TempPath = @event.TempPath,
+            TempBucket = @event.TempBucket,
         };
 
         await capPublisher.PublishAsync("file.migration.cleaned", fileCleanedEvent);
@@ -64,9 +63,9 @@ public class FileManagementConsumer(IAmazonS3 s3Client,
         var destinationKey = $"{folder}/{@event.TempPath}";
         var copyObjectRequest = new CopyObjectRequest
         {
-            SourceBucket = _bucketTemporary,
+            SourceBucket = @event.TempBucket,
             SourceKey = @event.TempPath,
-            DestinationBucket = _bucketPermanent,
+            DestinationBucket = @event.FinalBucket,
             DestinationKey = destinationKey,
         };
 
@@ -93,7 +92,9 @@ public class FileManagementConsumer(IAmazonS3 s3Client,
             MediaAssetId = @event.MediaAssetId,
             CompletedAt = DateTime.UtcNow,
             FinalPath = destinationKey,
+            FinalBucket = @event.FinalBucket,
             TempPath = @event.TempPath,
+            TempBucket = @event.TempBucket,
         };
 
         await capPublisher.PublishAsync("file.migration.completed", fileMigrationCompletedEvent);
@@ -103,39 +104,47 @@ public class FileManagementConsumer(IAmazonS3 s3Client,
     {
         if (numberOfRetries == null || numberOfRetries <= _maxRetry)
         {
-            numberOfRetries ??= 1;
-            var delayTime = TimeSpan.FromSeconds((double)(numberOfRetries * 30));
-            var retryFileUploadedEvent = new RetryFileUploadedEvent
-            {
-                MediaAssetId = @event.MediaAssetId,
-                UploadBatchId = @event.UploadBatchId,
-                OriginalFileName = @event.OriginalFileName,
-                MimeType = @event.MimeType,
-                Size = @event.Size,
-                TempPath = @event.TempPath,
-                RetryCount = @event.RetryCount,
-                Title = @event.Title,
-                Tags = @event.Tags,
-                Details = details,
-                FailedAt = DateTime.UtcNow,
-            };
-
-            var headers = new Dictionary<string, string?>
-            {
-                { "x-retry-count", (++numberOfRetries).ToString() },
-            };
-
-            return capPublisher.PublishDelayAsync(delayTime, "file.uploaded.retry", retryFileUploadedEvent, headers);
+            return SendToRetry(@event, details, numberOfRetries);
         }
 
         var fileMigrationFailedEvent = new FileMigrationFailedEvent
         {
             MediaAssetId = @event.MediaAssetId,
+            TempBucket = @event.TempBucket,
             TempPath = @event.TempPath,
             Details = details,
             FailedAt = DateTime.UtcNow,
         };
 
         return capPublisher.PublishAsync("file.uploaded.failed", fileMigrationFailedEvent);
+    }
+
+    private Task SendToRetry(FileUploadedEvent @event, JsonDocument details, int? numberOfRetries)
+    {
+        numberOfRetries ??= 0;
+        var delayTime = TimeSpan.FromSeconds((long)((numberOfRetries + 1) * 30));
+        var retryFileUploadedEvent = new RetryFileUploadedEvent
+        {
+            MediaAssetId = @event.MediaAssetId,
+            UploadBatchId = @event.UploadBatchId,
+            OriginalFileName = @event.OriginalFileName,
+            MimeType = @event.MimeType,
+            Size = @event.Size,
+            TempPath = @event.TempPath,
+            TempBucket = @event.TempBucket,
+            FinalBucket = @event.FinalBucket,
+            RetryCount = @event.RetryCount,
+            Title = @event.Title,
+            Tags = @event.Tags,
+            Details = details,
+            FailedAt = DateTime.UtcNow,
+        };
+
+        var headers = new Dictionary<string, string?>
+        {
+            { "x-retry-count", (numberOfRetries + 1).ToString() },
+        };
+
+        return capPublisher.PublishDelayAsync(delayTime, "file.uploaded.retry", retryFileUploadedEvent, headers);
     }
 }

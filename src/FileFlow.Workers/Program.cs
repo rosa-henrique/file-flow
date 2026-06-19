@@ -14,6 +14,7 @@ builder.Services.AddApplication(builder.Configuration);
 
 builder.Services.AddTransient<AuditConsumer>();
 builder.Services.AddTransient<FileManagementConsumer>();
+builder.Services.AddTransient<DomainEventConsumer>();
 
 var host = builder.Build();
 

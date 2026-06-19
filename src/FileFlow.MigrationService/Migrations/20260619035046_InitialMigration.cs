@@ -39,10 +39,9 @@ namespace FileFlow.MigrationService.Migrations
                     mime_type = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     size = table.Column<long>(type: "bigint", nullable: false),
                     final_path = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    final_bucket = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     status = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false),
-                    retry_count = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    last_attempt_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     completed_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     error_message = table.Column<string>(type: "text", nullable: true),
                     tags = table.Column<string>(type: "jsonb", nullable: true),
@@ -70,7 +69,9 @@ namespace FileFlow.MigrationService.Migrations
                     event_type = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false),
                     message = table.Column<string>(type: "text", nullable: false),
                     temp_path = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
+                    temp_bucket = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     final_path = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    final_bucket = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     details = table.Column<JsonDocument>(type: "jsonb", nullable: true)
                 },
                 constraints: table =>

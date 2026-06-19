@@ -36,20 +36,17 @@ public class MediaAsset : Entity
     [MaxLength(500)]
     public string? FinalPath { get; private set; }
 
+    [Column("final_bucket")]
+    [MaxLength(100)]
+    public string? FinalBucket { get; private set; }
+
     [Column("status", TypeName = "varchar(50)")]
     [Required]
     public MediaAssetStatus Status { get; private set; }
 
-    [Column("retry_count")]
-    [Required]
-    public int RetryCount { get; private set; }
-
     [Column("created_at")]
     [Required]
     public DateTime CreatedAt { get; private set; }
-
-    [Column("last_attempt_at")]
-    public DateTime? LastAttemptAt { get; private set; }
 
     [Column("completed_at")]
     public DateTime? CompletedAt { get; private set; }
@@ -87,20 +84,12 @@ public class MediaAsset : Entity
             Size = size,
             FinalPath = null,
             Status = MediaAssetStatus.PENDING,
-            RetryCount = 0,
             CreatedAt = DateTime.UtcNow,
-            LastAttemptAt = null,
             CompletedAt = null,
             ErrorMessage = null,
             Tags = tags,
             Metadata = metadata,
         };
-    }
-
-    public void IncrementRetry()
-    {
-        RetryCount++;
-        LastAttemptAt = DateTime.UtcNow;
     }
 
     public void SetError(string? error)
@@ -110,9 +99,10 @@ public class MediaAsset : Entity
         CompletedAt = DateTime.UtcNow;
     }
 
-    public void MarkMigrated(string finalPath)
+    public void MarkMigrated(string finalPath, string finalBucket)
     {
         FinalPath = finalPath;
+        FinalBucket = finalBucket;
         Status = MediaAssetStatus.MIGRATED;
         CompletedAt = DateTime.UtcNow;
     }
