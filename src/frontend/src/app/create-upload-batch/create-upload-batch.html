@@ -175,9 +175,77 @@
           <span>Criar Lote</span>
         }
       </button>
-      <button type="reset" class="btn btn-secondary">
+      <button type="reset" class="btn btn-secondary" [disabled]="isSubmitting">
         Limpar Formulário
       </button>
     </div>
   </form>
+
+  @if (isStatusModalVisible) {
+    <div class="status-modal-backdrop" role="presentation">
+      <section
+        class="status-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="upload-status-title"
+      >
+        <button
+          type="button"
+          class="status-modal__close"
+          (click)="onModalClose()"
+          aria-label="Fechar modal"
+        >
+          ✕
+        </button>
+
+        @if (isFinalStatus()) {
+          <span
+            class="status-modal__badge"
+            [class.status-modal__badge--completed]="currentBatchStatus === UploadBatchStatus.COMPLETED"
+            [class.status-modal__badge--partial]="currentBatchStatus === UploadBatchStatus.PARTIAL"
+            [class.status-modal__badge--failed]="currentBatchStatus === UploadBatchStatus.FAILED"
+          >
+            {{ getHumanizedStatus(currentBatchStatus) }}
+          </span>
+
+          <h2 id="upload-status-title" class="status-modal__title">
+            {{ getFinalStatusTitle() }}
+          </h2>
+
+          <p class="status-modal__description">
+            {{ getFinalStatusDescription() }}
+          </p>
+
+          <div class="status-modal__actions">
+            <button type="button" class="btn btn-secondary" (click)="onBackToList()">
+              Voltar para listagem
+            </button>
+            <button type="button" class="btn btn-primary" (click)="onViewDetails()">
+              Ver mais
+            </button>
+          </div>
+        } @else {
+          <div class="status-modal__loader" aria-hidden="true"></div>
+
+          <h2 id="upload-status-title" class="status-modal__title">
+            Processando lote
+          </h2>
+
+          <p class="status-modal__description">
+            {{ statusMessage }}
+          </p>
+
+          @if (statusError) {
+            <p class="status-modal__error">{{ statusError }}</p>
+          }
+
+          <div class="status-modal__actions status-modal__actions--single">
+            <button type="button" class="btn btn-secondary" (click)="onModalClose()">
+              Fechar e voltar para listagem
+            </button>
+          </div>
+        }
+      </section>
+    </div>
+  }
 </div>

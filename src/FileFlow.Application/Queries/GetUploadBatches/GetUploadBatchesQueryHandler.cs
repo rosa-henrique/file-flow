@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FileFlow.Application.Queries.GetUploadBatches;
 
-public class GetUploadBatchesHandler(FileFlowDbContext dbContext) : IRequestHandler<GetUploadBatchesQuery, IEnumerable<GetUploadBatchesResponse>>
+public class GetUploadBatchesQueryHandler(FileFlowDbContext dbContext) : IRequestHandler<GetUploadBatchesQuery, IEnumerable<GetUploadBatchesResponse>>
 {
     public async Task<IEnumerable<GetUploadBatchesResponse>> Handle(GetUploadBatchesQuery request, CancellationToken cancellationToken)
     {

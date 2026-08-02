@@ -6,7 +6,9 @@ using FileFlow.Application.Commands.CancelMultiPartUpload;
 using FileFlow.Application.Commands.CompleteMultiPartUpload;
 using FileFlow.Application.Commands.CreateUploadBatch;
 using FileFlow.Application.Commands.GenerateUploadUrl;
+using FileFlow.Application.Queries.GetUploadBatchById;
 using FileFlow.Application.Queries.GetUploadBatches;
+using FileFlow.Application.Queries.GetUploadBatchStatus;
 using FileFlow.Data;
 
 using MediatR;
@@ -47,31 +49,43 @@ app.UseHttpsRedirection();
 
 app.UseExceptionHandler();
 
-app.MapGet("upload-batch", (IMediator mediator) =>
+app.MapGet("upload-batches", (IMediator mediator, CancellationToken cancellationToken) =>
 {
     var request = new GetUploadBatchesQuery();
-    return mediator.Send(request);
+    return mediator.Send(request, cancellationToken);
 });
 
-app.MapPost("upload-batch", async ([FromBody] CreateUploadBatchCommand request, IMediator mediator) =>
+app.MapGet("upload-batches/{id:guid}", (IMediator mediator, Guid id, CancellationToken cancellationToken) =>
 {
-    var uploadBatchId = await mediator.Send(request);
-
-    return Results.Created($"/upload-batch/{uploadBatchId}", uploadBatchId);
+    var request = new GetUploadBatchByIdQuery(id);
+    return mediator.Send(request, cancellationToken);
 });
 
-app.MapPost("file/generate-upload-url", ([FromBody] GenerateUploadUrlCommand request, IMediator mediator)
-    => mediator.Send(request));
+app.MapGet("upload-batches/{id:guid}/status", (IMediator mediator, Guid id, CancellationToken cancellationToken) =>
+{
+    var request = new GetUploadBatchStatusQuery(id);
+    return mediator.Send(request, cancellationToken);
+});
 
-app.MapPost("file/complete-multipart-upload", ([FromBody] CompleteMultiPartUploadCommand request, IMediator mediator)
-    => mediator.Send(request));
+app.MapPost("upload-batch", async ([FromBody] CreateUploadBatchCommand request, IMediator mediator, CancellationToken cancellationToken) =>
+{
+    var uploadBatchId = await mediator.Send(request, cancellationToken);
+
+    return Results.Accepted($"/upload-batch/{uploadBatchId}", uploadBatchId);
+});
+
+app.MapPost("file/generate-upload-url", ([FromBody] GenerateUploadUrlCommand request, IMediator mediator, CancellationToken cancellationToken)
+    => mediator.Send(request, cancellationToken));
+
+app.MapPost("file/complete-multipart-upload", ([FromBody] CompleteMultiPartUploadCommand request, IMediator mediator, CancellationToken cancellationToken)
+    => mediator.Send(request, cancellationToken));
 
 app.MapDelete("file/cancel-multipart-upload/{objectKey}/{uploadId}",
-    async (string objectKey, string uploadId, IMediator mediator)
+    async (string objectKey, string uploadId, IMediator mediator, CancellationToken cancellationToken)
         =>
     {
         var request = new CancelMultiPartUploadCommand(uploadId, objectKey);
-        await mediator.Send(request);
+        await mediator.Send(request, cancellationToken);
     });
 
 app.Run();

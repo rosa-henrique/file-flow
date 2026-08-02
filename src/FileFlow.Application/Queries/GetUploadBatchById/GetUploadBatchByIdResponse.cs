@@ -1,0 +1,3 @@
+namespace FileFlow.Application.Queries.GetUploadBatchById;
+
+public class GetUploadBatchByIdResponse;

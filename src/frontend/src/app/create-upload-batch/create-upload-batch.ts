@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -7,8 +7,14 @@ import {
   Validators,
 } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { UploadBatchService } from '../upload-batch';
+import {
+  UploadBatchService,
+  UploadBatchStatus,
+  UploadBatchStatusLabel,
+} from '../upload-batch';
 import { UploadFile, GenerateUploadUrlResponse } from '../upload-file';
+import { Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-create-upload-batch',
@@ -19,15 +25,38 @@ import { UploadFile, GenerateUploadUrlResponse } from '../upload-file';
 export class CreateUploadBatch implements OnInit {
   form!: FormGroup;
   isSubmitting = false;
+  isStatusModalVisible = false;
+  isPollingStatus = false;
+  statusMessage: string | null = null;
+  statusError: string | null = null;
+  currentBatchId: string | null = null;
+  currentBatchStatus: UploadBatchStatus = UploadBatchStatus.PROCESSING;
+
+  private pollingTimerId: ReturnType<typeof setTimeout> | null = null;
+  private completionRedirectTimerId: ReturnType<typeof setTimeout> | null = null;
+  private statusSubscription: Subscription | null = null;
+  private statusRetryAttempts = 0;
+
+  private readonly pollingIntervalMs = 300;
+  private readonly retryDelayMs = 1000;
+  private readonly maxRetryAttempts = 3;
+  private readonly completionRedirectDelayMs = 1200;
+
+  protected readonly UploadBatchStatus = UploadBatchStatus;
 
   constructor(
     private fb: FormBuilder,
     private uploadBatchService: UploadBatchService,
-    private uploadFile: UploadFile
+    private uploadFile: UploadFile,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
     this.initializeForm();
+  }
+
+  ngOnDestroy(): void {
+    this.stopStatusPolling();
   }
 
   private initializeForm(): void {
@@ -263,8 +292,12 @@ export class CreateUploadBatch implements OnInit {
       next: (response) => {
         console.log('[CreateUploadBatch] Lote criado com sucesso:', response);
         this.isSubmitting = false;
+
         this.form.reset();
         this.items.clear();
+
+        this.openStatusModal(response.id);
+        this.startStatusLongPolling(response.id);
       },
       error: (error) => {
         console.error('[CreateUploadBatch] Erro ao criar lote:', error);
@@ -290,5 +323,185 @@ export class CreateUploadBatch implements OnInit {
     const sizes = ['B', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+  }
+
+  onModalClose(): void {
+    this.stopStatusPolling();
+    this.closeModal();
+    this.goToBatchResultScreen();
+  }
+
+  onBackToList(): void {
+    this.closeModal();
+    this.goToBatchResultScreen();
+  }
+
+  onViewDetails(): void {
+    if (!this.currentBatchId) {
+      return;
+    }
+
+    this.stopStatusPolling();
+    this.closeModal();
+    this.router.navigate(['/upload-batches', this.currentBatchId]);
+  }
+
+  isFinalStatus(): boolean {
+    return (
+      this.currentBatchStatus === UploadBatchStatus.COMPLETED ||
+      this.currentBatchStatus === UploadBatchStatus.PARTIAL ||
+      this.currentBatchStatus === UploadBatchStatus.FAILED
+    );
+  }
+
+  getFinalStatusTitle(): string {
+    if (this.currentBatchStatus === UploadBatchStatus.COMPLETED) {
+      return 'Lote concluido com sucesso';
+    }
+
+    if (this.currentBatchStatus === UploadBatchStatus.PARTIAL) {
+      return 'Lote concluido parcialmente';
+    }
+
+    if (this.currentBatchStatus === UploadBatchStatus.FAILED) {
+      return 'Falha no processamento do lote';
+    }
+
+    return 'Processamento em andamento';
+  }
+
+  getFinalStatusDescription(): string {
+    if (this.currentBatchStatus === UploadBatchStatus.COMPLETED) {
+      return 'Todos os arquivos foram processados com sucesso.';
+    }
+
+    if (this.currentBatchStatus === UploadBatchStatus.PARTIAL) {
+      return 'Uma parte dos arquivos foi processada. Verifique os detalhes para identificar os itens com falha.';
+    }
+
+    if (this.currentBatchStatus === UploadBatchStatus.FAILED) {
+      return 'Nao foi possivel processar este lote. Voce pode acessar os detalhes para investigar o motivo.';
+    }
+
+    return 'Aguarde enquanto finalizamos o processamento do lote.';
+  }
+
+  getHumanizedStatus(status: UploadBatchStatus): string {
+    return UploadBatchStatusLabel[status] ?? status;
+  }
+
+  private openStatusModal(batchId: string): void {
+    this.currentBatchId = batchId;
+    this.currentBatchStatus = UploadBatchStatus.PROCESSING;
+    this.statusError = null;
+    this.statusMessage = 'Estamos processando os arquivos enviados. Isso pode levar alguns instantes.';
+    this.isPollingStatus = true;
+    this.isStatusModalVisible = true;
+  }
+
+  private closeModal(): void {
+    this.isStatusModalVisible = false;
+    this.statusMessage = null;
+    this.statusError = null;
+    this.currentBatchId = null;
+  }
+
+  private startStatusLongPolling(batchId: string): void {
+    this.stopStatusPolling();
+    this.statusRetryAttempts = 0;
+    this.requestBatchStatus(batchId);
+  }
+
+  private requestBatchStatus(batchId: string): void {
+    this.statusSubscription = this.uploadBatchService.getStatus(batchId).subscribe({
+      next: (statusResponse) => {
+        this.statusSubscription = null;
+        this.statusRetryAttempts = 0;
+        this.currentBatchStatus = statusResponse.status;
+
+        if (this.isFinalStatusValue(statusResponse.status)) {
+          this.statusMessage = 'Processamento finalizado. Redirecionando para a listagem...';
+          this.statusError = null;
+          this.isPollingStatus = false;
+          this.scheduleCompletionRedirect();
+          return;
+        }
+
+        if (statusResponse.status === UploadBatchStatus.PROCESSING) {
+          this.statusMessage = 'Lote em processamento. Vamos atualizar automaticamente quando houver mudanca de status.';
+          this.scheduleNextStatusRequest(batchId);
+          return;
+        }
+
+        this.isPollingStatus = false;
+        this.statusError = null;
+        this.statusMessage = null;
+      },
+      error: (error) => {
+        this.statusSubscription = null;
+        console.error('[CreateUploadBatch] Erro ao consultar status do lote:', error);
+
+        this.statusRetryAttempts += 1;
+        if (this.statusRetryAttempts <= this.maxRetryAttempts) {
+          this.isPollingStatus = true;
+          this.statusError = `Falha ao consultar status. Tentando novamente (${this.statusRetryAttempts}/${this.maxRetryAttempts})...`;
+          this.scheduleNextStatusRequest(batchId, this.retryDelayMs);
+          return;
+        }
+
+        this.isPollingStatus = false;
+        this.statusError = 'Nao foi possivel atualizar o status do lote apos 3 tentativas. Tente novamente nos detalhes.';
+      },
+    });
+  }
+
+  private isFinalStatusValue(status: UploadBatchStatus): boolean {
+    return (
+      status === UploadBatchStatus.COMPLETED ||
+      status === UploadBatchStatus.PARTIAL ||
+      status === UploadBatchStatus.FAILED
+    );
+  }
+
+  private scheduleNextStatusRequest(batchId: string, delayMs = this.pollingIntervalMs): void {
+    this.stopScheduledPolling();
+    this.pollingTimerId = setTimeout(() => {
+      this.requestBatchStatus(batchId);
+    }, delayMs);
+  }
+
+  private stopScheduledPolling(): void {
+    if (this.pollingTimerId) {
+      clearTimeout(this.pollingTimerId);
+      this.pollingTimerId = null;
+    }
+  }
+
+  private scheduleCompletionRedirect(): void {
+    this.clearCompletionRedirect();
+    this.completionRedirectTimerId = setTimeout(() => {
+      this.closeModal();
+      this.goToBatchResultScreen();
+    }, this.completionRedirectDelayMs);
+  }
+
+  private clearCompletionRedirect(): void {
+    if (this.completionRedirectTimerId) {
+      clearTimeout(this.completionRedirectTimerId);
+      this.completionRedirectTimerId = null;
+    }
+  }
+
+  private stopStatusPolling(): void {
+    this.stopScheduledPolling();
+    this.clearCompletionRedirect();
+    this.statusSubscription?.unsubscribe();
+    this.statusSubscription = null;
+    this.isPollingStatus = false;
+  }
+
+  private goToBatchResultScreen(): void {
+    // TODO: atualizar para a rota da tela de resultado quando ela for criada.
+    this.router.navigate(['/']);
   }
 }

@@ -313,6 +313,132 @@
   margin: 0.5rem 0 0 0;
 }
 
+.status-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background-color: rgba(20, 19, 19, 0.82);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.status-modal {
+  width: min(520px, 100%);
+  background-color: #1c1b1c;
+  border: 1px solid #48464b;
+  border-radius: 10px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  padding: 2rem;
+  position: relative;
+  text-align: center;
+}
+
+.status-modal__close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid #ffb4ab;
+  background: transparent;
+  color: #ffb4ab;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background-color: #ffb4ab;
+    color: #1c1b1c;
+  }
+}
+
+.status-modal__loader {
+  width: 52px;
+  height: 52px;
+  border: 4px solid #3b393f;
+  border-top-color: #cfbcff;
+  border-radius: 50%;
+  margin: 0 auto 1.25rem;
+  animation: spin 0.9s linear infinite;
+}
+
+.status-modal__title {
+  margin: 0 0 0.75rem;
+  color: #e6e1e1;
+  font-size: 1.25rem;
+}
+
+.status-modal__description {
+  margin: 0;
+  color: #b8b8b8;
+  line-height: 1.5;
+}
+
+.status-modal__error {
+  margin-top: 0.85rem;
+  color: #ffb4ab;
+  font-size: 0.9rem;
+}
+
+.status-modal__actions {
+  margin-top: 1.5rem;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+
+  .btn {
+    min-width: 180px;
+  }
+}
+
+.status-modal__actions--single {
+  .btn {
+    min-width: 240px;
+  }
+}
+
+.status-modal__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  border: 1px solid;
+}
+
+.status-modal__badge--completed {
+  background-color: rgba(76, 175, 80, 0.2);
+  color: #8dd68d;
+  border-color: #4caf50;
+}
+
+.status-modal__badge--partial {
+  background-color: rgba(255, 193, 7, 0.2);
+  color: #ffe082;
+  border-color: #ffca28;
+}
+
+.status-modal__badge--failed {
+  background-color: rgba(255, 180, 171, 0.2);
+  color: #ffb4ab;
+  border-color: #ffb4ab;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 // Responsividade
 @media (max-width: 600px) {
   .create-upload-batch-container {
@@ -344,6 +470,19 @@
 
   .btn {
     width: 100%;
+  }
+
+  .status-modal {
+    padding: 1.5rem 1rem;
+  }
+
+  .status-modal__actions {
+    flex-direction: column;
+
+    .btn {
+      min-width: 0;
+      width: 100%;
+    }
   }
 }
 
