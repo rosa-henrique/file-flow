@@ -75,12 +75,15 @@ export interface GetUploadBatchByIdResponse {
   mediaAssets: GetUploadBatchByIdMediaAssetResponse[];
 }
 
+export interface ReprocessUploadBatchResponse {
+  id: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class UploadBatchService {
   private readonly batchesApiUrl = 'api/upload-batches';
-  private readonly createBatchApiUrl = 'api/upload-batch';
 
   constructor(private httpClient: HttpClient) {}
 
@@ -96,7 +99,7 @@ export class UploadBatchService {
     console.log(`[UploadBatchService] Criando lote: ${payload.name}`);
 
     return this.httpClient
-      .post(this.createBatchApiUrl, payload, {
+      .post(this.batchesApiUrl, payload, {
         observe: 'response',
       })
       .pipe(
@@ -113,6 +116,13 @@ export class UploadBatchService {
   getById(id: string): Observable<GetUploadBatchByIdResponse> {
     return this.httpClient.get<GetUploadBatchByIdResponse>(
       `${this.batchesApiUrl}/${id}`
+    );
+  }
+
+  reprocess(id: string): Observable<ReprocessUploadBatchResponse> {
+    return this.httpClient.post<ReprocessUploadBatchResponse>(
+      `${this.batchesApiUrl}/${id}/reprocess`,
+      {}
     );
   }
 

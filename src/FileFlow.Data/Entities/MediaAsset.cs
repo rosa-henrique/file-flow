@@ -107,6 +107,13 @@ public class MediaAsset : Entity
         CompletedAt = DateTime.UtcNow;
     }
 
+    public void SetToReprocess()
+    {
+        Status = MediaAssetStatus.PENDING;
+        CompletedAt = null;
+        ErrorMessage = null;
+    }
+
     protected MediaAsset() { }
 }
 
@@ -116,6 +123,4 @@ public enum MediaAssetStatus
     MIGRATING,
     MIGRATED,
     FAILED,
-    DELETION_PENDING,
-    DELETED,
 }

@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { LoadingOverlay } from '../shared/loading-overlay/loading-overlay';
 import {
   GetUploadBatchByIdMediaAssetResponse,
   GetUploadBatchByIdResponse,
@@ -11,7 +12,7 @@ import {
 
 @Component({
   selector: 'app-upload-batch-details',
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, LoadingOverlay],
   templateUrl: './upload-batch-details.html',
   styleUrl: './upload-batch-details.scss',
 })
@@ -27,6 +28,8 @@ export class UploadBatchDetails implements OnInit {
   };
 
   protected readonly isLoading = signal(false);
+  protected readonly isReprocessing = signal(false);
+  protected readonly reprocessFeedback = signal<string | null>(null);
   protected readonly error = signal<string | null>(null);
   protected readonly batch = signal<GetUploadBatchByIdResponse | null>(null);
 
@@ -96,9 +99,29 @@ export class UploadBatchDetails implements OnInit {
   }
 
   protected onReprocessFailedFiles(batchId: string): void {
-    this.router.navigate(['/create-upload-batch'], {
-      queryParams: { reprocessFromBatchId: batchId },
+    this.isReprocessing.set(true);
+    this.reprocessFeedback.set(null);
+    this.uploadBatchService.reprocess(batchId).subscribe({
+      next: () => {
+        this.isReprocessing.set(false);
+        this.reprocessFeedback.set('Reprocessamento solicitado com sucesso. Feche para atualizar o conteudo.');
+      },
+      error: () => {
+        this.isReprocessing.set(false);
+        this.error.set('Nao foi possivel solicitar o reprocessamento. Tente novamente.');
+      },
     });
+  }
+
+  protected closeReprocessFeedback(): void {
+    this.reprocessFeedback.set(null);
+
+    const currentBatch = this.batch();
+    if (!currentBatch) {
+      return;
+    }
+
+    this.loadBatch(currentBatch.id);
   }
 
   protected getAssetTitle(asset: GetUploadBatchByIdMediaAssetResponse): string {

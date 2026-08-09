@@ -108,6 +108,15 @@
   background: rgba(147, 0, 10, 0.14);
 }
 
+.state-card--success {
+  color: #a5d6a7;
+  border-color: #2e7d32;
+  background: rgba(46, 125, 50, 0.16);
+  display: grid;
+  gap: 0.8rem;
+  justify-items: center;
+}
+
 .assets-list {
   display: grid;
   gap: 1rem;
@@ -231,6 +240,11 @@
   background: transparent;
   border: 1px solid #6750a4;
   color: #cfbcff;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 @media (max-width: 700px) {

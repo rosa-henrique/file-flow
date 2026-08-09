@@ -68,6 +68,12 @@ public class UploadBatch : Entity
         Status = status;
     }
 
+    public void SetToReprocess()
+    {
+        Status = UploadBatchStatus.PENDING;
+        CompletedAt = null;
+    }
+
     protected UploadBatch() { }
 }
 

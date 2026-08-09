@@ -1,4 +1,8 @@
 <div class="page-container">
+  @if (isReprocessing()) {
+    <app-loading-overlay message="Reprocessando arquivos em falha..."></app-loading-overlay>
+  }
+
   <section class="page-section">
     <header class="page-header details-header">
       <div>
@@ -10,6 +14,15 @@
         </button>
       </div>
     </header>
+
+    @if (reprocessFeedback()) {
+      <section class="state-card state-card--success">
+        <p>{{ reprocessFeedback() }}</p>
+        <button type="button" class="btn btn-secondary" (click)="closeReprocessFeedback()">
+          Fechar e atualizar
+        </button>
+      </section>
+    }
 
     @if (isLoading()) {
       <section class="state-card">
@@ -47,9 +60,14 @@
             <button
               type="button"
               class="btn btn-secondary"
+              [disabled]="isReprocessing()"
               (click)="onReprocessFailedFiles(currentBatch.id)"
             >
-              Reprocessar arquivos em falha
+              @if (isReprocessing()) {
+                Reprocessando...
+              } @else {
+                Reprocessar arquivos em falha
+              }
             </button>
           </div>
         }

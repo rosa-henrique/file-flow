@@ -6,6 +6,7 @@ using FileFlow.Application.Commands.CancelMultiPartUpload;
 using FileFlow.Application.Commands.CompleteMultiPartUpload;
 using FileFlow.Application.Commands.CreateUploadBatch;
 using FileFlow.Application.Commands.GenerateUploadUrl;
+using FileFlow.Application.Commands.ReprocessUploadBatch;
 using FileFlow.Application.Queries.GetUploadBatchById;
 using FileFlow.Application.Queries.GetUploadBatches;
 using FileFlow.Application.Queries.GetUploadBatchStatus;
@@ -67,7 +68,13 @@ app.MapGet("upload-batches/{id:guid}/status", (IMediator mediator, Guid id, Canc
     return mediator.Send(request, cancellationToken);
 });
 
-app.MapPost("upload-batch", async ([FromBody] CreateUploadBatchCommand request, IMediator mediator, CancellationToken cancellationToken) =>
+app.MapPost("upload-batches/{id:guid}/reprocess", (IMediator mediator, Guid id, CancellationToken cancellationToken) =>
+{
+    var request = new ReprocessUploadBatchCommand(id);
+    return mediator.Send(request, cancellationToken);
+});
+
+app.MapPost("upload-batches", async ([FromBody] CreateUploadBatchCommand request, IMediator mediator, CancellationToken cancellationToken) =>
 {
     var uploadBatchId = await mediator.Send(request, cancellationToken);
 
