@@ -1,59 +1,61 @@
-# Frontend
+# Frontend — FileFlow
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.11.
+Este projeto contém a camada de interface do FileFlow, construída com Angular.
 
-## Development server
+## Configuração básica
 
-To start a local development server, run:
+O frontend é configurado para rodar com o proxy de API definido em [proxy.conf.js](proxy.conf.js), o que permite que chamadas para `/api` sejam encaminhadas para o backend local.
 
-```bash
-ng serve
-```
+## Comandos principais
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+### Instalar dependências
 
 ```bash
-ng generate component component-name
+npm install
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+### Rodar localmente
 
 ```bash
-ng generate --help
+npm start
 ```
 
-## Building
-
-To build the project run:
+Ou, alternativamente:
 
 ```bash
-ng build
+npx ng serve
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+A aplicação fica disponível em `http://localhost:4200/`.
 
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+### Build de produção
 
 ```bash
-ng test
+npm run build
 ```
 
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
+### Testes
 
 ```bash
-ng e2e
+npm run test
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+## Configuração de proxy
 
-## Additional Resources
+O arquivo [proxy.conf.js](proxy.conf.js) redireciona chamadas para `/api` para a URL do backend definida por variáveis de ambiente, como:
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+- `services__api__https__0`
+- `services__api__http__0`
+
+Isso facilita a integração local entre frontend e API sem precisar trocar manualmente a base URL em cada chamada.
+
+## Estrutura resumida
+
+- [src/app](src/app) — componentes, serviços e módulos da aplicação.
+- [src/styles.scss](src/styles.scss) — estilos globais.
+- [angular.json](angular.json) — configuração do projeto Angular.
+- [package.json](package.json) — dependências e scripts.
+
+## Observação
+
+Este README foi adaptado para refletir a estrutura atual do projeto e a integração com a API local do FileFlow.
