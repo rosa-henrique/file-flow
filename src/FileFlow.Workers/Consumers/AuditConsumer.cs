@@ -31,7 +31,7 @@ public class AuditConsumer(FileFlowDbContext dbContext, ILogger<AuditConsumer> l
         logger.LogInformation("Iniciando criação de log de arquivo migrado para {@Event}", @event);
 
         var log = MediaAssetLog.CreateComplete(@event.MediaAssetId,
-            "Upload iniciado",
+            "Upload finalizado",
             @event.TempPath,
             @event.TempBucket,
             @event.FinalPath,

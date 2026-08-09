@@ -5,9 +5,14 @@
         <h1>Lotes</h1>
         <p>Gerenciamento de lotes de arquivos</p>
       </div>
-      <button mat-raised-button color="primary" [routerLink]="['/create-upload-batch']">
-        Novo Lote
-      </button>
+      <div class="header-actions">
+        <button mat-button color="primary" [routerLink]="['/upload-batches']">
+          Consultar Detalhes
+        </button>
+        <button mat-raised-button color="primary" [routerLink]="['/create-upload-batch']">
+          Novo Lote
+        </button>
+      </div>
     </div>
 
     <mat-card class="content-card">
@@ -61,6 +66,16 @@
             <ng-container matColumnDef="completedAt">
               <th mat-header-cell *matHeaderCellDef>Completado em</th>
               <td mat-cell *matCellDef="let element">{{ formatDate(element.completedAt) }}</td>
+            </ng-container>
+
+            <!-- Actions Column -->
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Acoes</th>
+              <td mat-cell *matCellDef="let element">
+                <button mat-button color="primary" [routerLink]="['/upload-batches', element.id]">
+                  Ver Detalhes
+                </button>
+              </td>
             </ng-container>
 
             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>

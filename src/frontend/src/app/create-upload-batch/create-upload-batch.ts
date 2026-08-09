@@ -326,14 +326,16 @@ export class CreateUploadBatch implements OnInit {
   }
 
   onModalClose(): void {
+    const batchId = this.currentBatchId;
     this.stopStatusPolling();
     this.closeModal();
-    this.goToBatchResultScreen();
+    this.goToBatchResultScreen(batchId);
   }
 
   onBackToList(): void {
+    const batchId = this.currentBatchId;
     this.closeModal();
-    this.goToBatchResultScreen();
+    this.goToBatchResultScreen(batchId);
   }
 
   onViewDetails(): void {
@@ -420,10 +422,10 @@ export class CreateUploadBatch implements OnInit {
         this.currentBatchStatus = statusResponse.status;
 
         if (this.isFinalStatusValue(statusResponse.status)) {
-          this.statusMessage = 'Processamento finalizado. Redirecionando para a listagem...';
+          this.statusMessage = 'Processamento finalizado. Redirecionando para os detalhes...';
           this.statusError = null;
           this.isPollingStatus = false;
-          this.scheduleCompletionRedirect();
+          this.scheduleCompletionRedirect(batchId);
           return;
         }
 
@@ -477,11 +479,11 @@ export class CreateUploadBatch implements OnInit {
     }
   }
 
-  private scheduleCompletionRedirect(): void {
+  private scheduleCompletionRedirect(batchId: string): void {
     this.clearCompletionRedirect();
     this.completionRedirectTimerId = setTimeout(() => {
       this.closeModal();
-      this.goToBatchResultScreen();
+      this.goToBatchResultScreen(batchId);
     }, this.completionRedirectDelayMs);
   }
 
@@ -500,8 +502,12 @@ export class CreateUploadBatch implements OnInit {
     this.isPollingStatus = false;
   }
 
-  private goToBatchResultScreen(): void {
-    // TODO: atualizar para a rota da tela de resultado quando ela for criada.
-    this.router.navigate(['/']);
+  private goToBatchResultScreen(batchId: string | null): void {
+    if (batchId) {
+      this.router.navigate(['/upload-batches', batchId]);
+      return;
+    }
+
+    this.router.navigate(['/upload-batches']);
   }
 }

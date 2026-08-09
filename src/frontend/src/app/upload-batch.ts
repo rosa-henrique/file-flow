@@ -50,6 +50,31 @@ export interface GetUploadBatchStatusResponse {
   timedOut: boolean;
 }
 
+export interface GetUploadBatchByIdMediaAssetResponse {
+  id: string;
+  originalFileName: string;
+  title: string | null;
+  mimeType: string;
+  size: number;
+  finalPath: string | null;
+  finalBucket: string | null;
+  status: string;
+  createdAt: Date;
+  completedAt: Date | null;
+  errorMessage: string | null;
+  tags: string[] | null;
+  metadata: Record<string, unknown> | null;
+}
+
+export interface GetUploadBatchByIdResponse {
+  id: string;
+  name: string;
+  status: UploadBatchStatus;
+  createdAt: Date;
+  completedAt: Date | null;
+  mediaAssets: GetUploadBatchByIdMediaAssetResponse[];
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -82,6 +107,12 @@ export class UploadBatchService {
   getStatus(id: string): Observable<GetUploadBatchStatusResponse> {
     return this.httpClient.get<GetUploadBatchStatusResponse>(
       `${this.batchesApiUrl}/${id}/status`
+    );
+  }
+
+  getById(id: string): Observable<GetUploadBatchByIdResponse> {
+    return this.httpClient.get<GetUploadBatchByIdResponse>(
+      `${this.batchesApiUrl}/${id}`
     );
   }
 

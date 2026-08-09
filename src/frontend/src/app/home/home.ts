@@ -14,7 +14,7 @@ import { GetUploadBatchesResponse, UploadBatchService, UploadBatchStatusLabel } 
   styleUrls: ['./home.scss'],
 })
 export class Home implements OnInit {
-  protected readonly displayedColumns = ['name', 'uploadBatchStatus', 'totalFile', 'createdAt', 'completedAt'];
+  protected readonly displayedColumns = ['name', 'uploadBatchStatus', 'totalFile', 'createdAt', 'completedAt', 'actions'];
   protected batches: GetUploadBatchesResponse[] = [];
   protected isLoading = signal(true);
   protected error: string | null = null;

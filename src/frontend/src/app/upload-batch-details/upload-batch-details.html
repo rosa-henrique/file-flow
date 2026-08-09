@@ -1,0 +1,125 @@
+<div class="page-container">
+  <section class="page-section">
+    <header class="page-header details-header">
+      <div>
+        <h1>Detalhes do Lote</h1>
+      </div>
+      <div class="header-actions">
+        <button type="button" class="btn btn-secondary" [routerLink]="['/']">
+          Voltar para listagem
+        </button>
+      </div>
+    </header>
+
+    @if (isLoading()) {
+      <section class="state-card">
+        <p>Carregando detalhes do lote...</p>
+      </section>
+    } @else if (error()) {
+      <section class="state-card state-card--error">
+        <p>{{ error() }}</p>
+      </section>
+    } @else if (batch(); as currentBatch) {
+      <section class="summary-card">
+        <div class="summary-item">
+          <span class="summary-item__label">Nome do lote</span>
+          <strong class="summary-item__value">{{ currentBatch.name }}</strong>
+        </div>
+        <div class="summary-item">
+          <span class="summary-item__label">Status</span>
+          <strong class="summary-item__value">{{ formatStatus(currentBatch.status) }}</strong>
+        </div>
+        <div class="summary-item">
+          <span class="summary-item__label">Total de arquivos</span>
+          <strong class="summary-item__value">{{ currentBatch.mediaAssets.length }}</strong>
+        </div>
+        <div class="summary-item">
+          <span class="summary-item__label">Criado em</span>
+          <strong class="summary-item__value">{{ formatDate(currentBatch.createdAt) }}</strong>
+        </div>
+        <div class="summary-item">
+          <span class="summary-item__label">Concluido em</span>
+          <strong class="summary-item__value">{{ formatDate(currentBatch.completedAt) }}</strong>
+        </div>
+
+        @if (shouldShowReprocessButton(currentBatch.status)) {
+          <div class="summary-item summary-item--action">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              (click)="onReprocessFailedFiles(currentBatch.id)"
+            >
+              Reprocessar arquivos em falha
+            </button>
+          </div>
+        }
+      </section>
+
+      <section class="assets-list">
+        @for (asset of getSortedMediaAssets(); track asset.id) {
+          <article class="asset-card">
+            <header class="asset-card__header">
+              <h2>{{ getAssetTitle(asset) }}</h2>
+              <span class="status-badge" [class]="getMediaAssetStatusClass(asset.status)">
+                {{ getMediaAssetStatusLabel(asset.status) }}
+              </span>
+            </header>
+
+            <dl class="asset-data-list">
+              <div class="asset-data-row">
+                <dt>Arquivo original</dt>
+                <dd>{{ asset.originalFileName }}</dd>
+              </div>
+              <div class="asset-data-row">
+                <dt>Tamanho</dt>
+                <dd>{{ formatFileSize(asset.size) }}</dd>
+              </div>
+              <div class="asset-data-row">
+                <dt>Tipo</dt>
+                <dd>{{ asset.mimeType }}</dd>
+              </div>
+              <div class="asset-data-row">
+                <dt>Criado em</dt>
+                <dd>{{ formatDate(asset.createdAt) }}</dd>
+              </div>
+              <div class="asset-data-row">
+                <dt>Processado em</dt>
+                <dd>{{ formatDate(asset.completedAt) }}</dd>
+              </div>
+            </dl>
+
+            @if (asset.tags?.length) {
+              <div class="asset-tags">
+                <span class="asset-grid__label">Tags</span>
+                <div class="tags-list">
+                  @for (tag of asset.tags; track tag) {
+                    <span class="tag-chip">{{ tag }}</span>
+                  }
+                </div>
+              </div>
+            }
+
+            <details class="metadata-collapse">
+              <summary>
+                @if (hasMetadata(asset.metadata)) {
+                  Ver metadados tecnicos
+                } @else {
+                  Sem metadados tecnicos
+                }
+              </summary>
+              <pre>{{ getMetadataString(asset.metadata) }}</pre>
+            </details>
+
+            @if (asset.errorMessage) {
+              <p class="asset-error">{{ asset.errorMessage }}</p>
+            }
+          </article>
+        }
+      </section>
+    } @else {
+      <section class="state-card">
+        <p>Nenhum lote selecionado para visualizacao.</p>
+      </section>
+    }
+  </section>
+</div>
